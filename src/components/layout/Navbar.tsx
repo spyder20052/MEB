@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ListIcon, XIcon, ArrowRightIcon } from "@phosphor-icons/react";
 
@@ -42,9 +43,16 @@ export const Navbar = () => {
           }`}
         >
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-meb-green rounded-full flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-500 shadow-[0_0_15px_rgba(0,177,64,0.3)]">
-              <span className="text-meb-dark font-heading font-black text-lg">M</span>
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="relative w-12 h-12 transform group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_12px_rgba(0,240,64,0.4)]">
+              <Image
+                src="/images/logo.svg"
+                alt="MEB Logo"
+                width={48}
+                height={48}
+                className="w-full h-full"
+                priority
+              />
             </div>
             <span className="font-heading font-bold text-xl text-white tracking-tighter group-hover:text-meb-green transition-colors duration-500 hidden sm:block">
               MEB
@@ -111,9 +119,15 @@ export const Navbar = () => {
                <div className="absolute bottom-0 -left-20 w-80 h-80 bg-meb-green/5 rounded-full blur-[80px] pointer-events-none" />
                
               <div className="flex items-center justify-between mb-16 relative z-10">
-                <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-meb-green rounded-full flex items-center justify-center">
-                    <span className="text-meb-dark font-heading font-black text-lg">M</span>
+                <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2">
+                  <div className="relative w-12 h-12 drop-shadow-[0_0_12px_rgba(0,240,64,0.4)]">
+                    <Image
+                      src="/images/logo.svg"
+                      alt="MEB Logo"
+                      width={48}
+                      height={48}
+                      className="w-full h-full"
+                    />
                   </div>
                   <span className="font-heading font-bold text-xl text-white tracking-tighter">MEB</span>
                 </Link>

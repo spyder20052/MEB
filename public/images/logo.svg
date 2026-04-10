@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <!-- Bubbly M - matching the uploaded logo -->
+  <path
+    d="M 72 295
+       C 72 295 72 275 72 245
+       L 72 155
+       C 72 115 95 95 120 115
+       L 195 200
+       L 270 115
+       C 295 92 320 112 320 152
+       L 320 248
+       C 320 270 320 290 320 290"
+    stroke="#00F040"
+    stroke-width="58"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <!-- Exclamation dot (green) -->
+  <circle cx="342" cy="290" r="24" fill="#00F040"/>
+  <!-- Yellow stripe -->
+  <rect x="325" y="328" width="52" height="13" rx="6.5" fill="#FFCE00"/>
+  <!-- Red stripe -->
+  <rect x="325" y="351" width="52" height="13" rx="6.5" fill="#D21034"/>
+</svg>
