@@ -31,14 +31,14 @@ export const Navbar = () => {
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 sm:px-8 pointer-events-none transition-all duration-500 pt-6">
+      <div className={`fixed top-0 left-0 right-0 z-50 flex justify-center px-4 sm:px-8 pointer-events-none transition-all duration-500 ${scrolled ? "pt-2" : "pt-4"}`}>
         <motion.header
           initial={{ y: -100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className={`pointer-events-auto flex items-center justify-between w-full max-w-[1240px] px-4 py-3 sm:px-6 rounded-full transition-all duration-500 ${scrolled
-            ? "bg-[#060D03]/60 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
-            : "bg-transparent border border-transparent"
+          className={`pointer-events-auto flex items-center justify-between w-full max-w-[1240px] px-4 sm:px-6 rounded-full transition-all duration-500 ${scrolled
+            ? "bg-[#060D03]/60 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)] py-1 h-14"
+            : "bg-transparent border border-transparent py-2"
             }`}
         >
           {/* Logo */}
