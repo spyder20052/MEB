@@ -1,26 +1,154 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600&family=Poppins:wght@300;400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* ── MEB Ampdrive Palette ── */
+  --color-meb-green: #00B140;
+  --color-meb-dark: #060D03; /* Deep ampdrive dark */
+  --color-meb-dark-card: #0A1405; /* Slightly lighter for dark cards */
+  --color-meb-dark-border: #13260A; /* Stronger dark border */
+  --color-meb-dark-hover: #13260A;
+  --color-meb-navy: #0D1B2A; 
+  --color-meb-yellow: #F5C518;
+  --color-meb-red: #E63946;
+  --color-meb-white: #FFFFFF;
+  --color-meb-gray-50: #FAFAFA;
+  --color-meb-gray-100: #F0F0F0;
+  --color-meb-gray-200: #E0E0E0;
+  --color-meb-gray-400: #999999;
+  --color-meb-gray-base: #CFDAE6; /* From Ampdrive spec */
+  --color-meb-gray-500: #666666;
+  --color-meb-gray-700: #333333;
+
+  /* ── Typography ── */
+  --font-heading: "Poppins", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  /* ── Shadows ── */
+  --shadow-none: 0 0 0 rgba(0,0,0,0);
+  --shadow-glow: 0 0 100px rgba(0,177,64,0.3);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ═══════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════ */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  color: var(--color-meb-white);
+  background: var(--color-meb-dark);
+  line-height: 1.6;
+  overflow-x: hidden;
 }
+
+::selection {
+  background: var(--color-meb-green);
+  color: #060D03;
+}
+
+/* ═══════════════════════════════════════
+   UTILITIES (Ampdrive Style)
+   ═══════════════════════════════════════ */
+
+.text-accent {
+  color: var(--color-meb-green);
+}
+
+/* Solid Bento Cards */
+.card-solid-green {
+  background: var(--color-meb-green);
+  color: var(--color-meb-dark);
+  border: 1px solid var(--color-meb-dark); 
+  border-radius: 12px;
+}
+
+.card-solid-dark {
+  background: var(--color-meb-dark);
+  color: var(--color-meb-white);
+  border: 1px solid var(--color-meb-dark-border);
+  border-radius: 12px;
+}
+
+.card-solid-white {
+  background: var(--color-meb-white);
+  color: var(--color-meb-dark);
+  border: 1px solid var(--color-meb-gray-200);
+  border-radius: 12px;
+}
+
+/* Linear patterns (Tech intersecting lines) */
+.tech-lines {
+  background-image: 
+    linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.tech-lines-light {
+  background-image: 
+    linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* 3D Glass Blob */
+.glass-blob {
+  background: linear-gradient(135deg, rgba(0, 177, 64, 0.4) 0%, rgba(0, 217, 79, 0.1) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  box-shadow: 0 0 80px rgba(0, 177, 64, 0.3);
+}
+
+/* ═══════════════════════════════════════
+   SCROLLBAR
+   ═══════════════════════════════════════ */
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-meb-dark); }
+::-webkit-scrollbar-thumb {
+  background: var(--color-meb-dark-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-meb-green);
+}
+
+/* ═══════════════════════════════════════
+   FOCUS
+   ═══════════════════════════════════════ */
+
+*:focus-visible {
+  outline: 2px solid var(--color-meb-green);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ═══════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════ */
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes progress {
+  0% { transform: scaleX(1); }
+  100% { transform: scaleX(0); }
+}
+
+@keyframes shrink {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+
+
