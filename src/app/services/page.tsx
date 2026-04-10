@@ -93,7 +93,7 @@ export default function ServicesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          <span className="font-mono text-[11px] font-bold tracking-[0.25em] uppercase text-meb-green mb-6 block">
+          <span className="font-mono text-[11px] font-bold tracking-[0.25em] uppercase text-meb-green mb-6 mt-16 block">
             Ce que nous faisons
           </span>
           <h1 className="font-heading font-bold text-[52px] sm:text-[72px] md:text-[96px] lg:text-[120px] leading-[0.95] tracking-tight text-white mb-8">
@@ -102,7 +102,7 @@ export default function ServicesPage() {
           </h1>
           <div className="flex flex-col md:flex-row md:items-end gap-8 md:gap-20">
             <p className="font-body text-lg md:text-xl text-white/60 max-w-lg leading-relaxed border-l-2 border-meb-green pl-6">
-              Six piliers d&apos;excellence pour accompagner chaque étape 
+              Six piliers d&apos;excellence pour accompagner chaque étape
               de la croissance de votre entreprise — de la naissance à l&apos;expansion.
             </p>
             <Link
@@ -290,7 +290,7 @@ export default function ServicesPage() {
           >
             {/* Dark sweep */}
             <div className="absolute inset-0 bg-meb-dark translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-in-out pointer-events-none" />
-            
+
             {/* Decorative lines */}
             <div className="absolute top-10 right-10 w-12 h-[1px] bg-meb-dark group-hover:bg-meb-green opacity-30 group-hover:opacity-100 transition-all duration-500" />
             <div className="absolute top-10 right-10 w-[1px] h-12 bg-meb-dark group-hover:bg-meb-green opacity-30 group-hover:opacity-100 transition-all duration-500" />

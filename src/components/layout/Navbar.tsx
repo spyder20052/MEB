@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ListIcon, XIcon, ArrowRightIcon } from "@phosphor-icons/react";
 
 const navLinks = [
-  { label: "Pourquoi", href: "/pourquoi" },
+  { label: "Accueil", href: "/" },
   { label: "Services", href: "/services" },
   { label: "Événements", href: "/evenements" },
   { label: "Communauté", href: "/communaute" },
@@ -36,27 +36,24 @@ export const Navbar = () => {
           initial={{ y: -100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className={`pointer-events-auto flex items-center justify-between w-full max-w-[1240px] px-4 py-3 sm:px-6 rounded-full transition-all duration-500 ${
-            scrolled
-              ? "bg-[#060D03]/60 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
-              : "bg-transparent border border-transparent"
-          }`}
+          className={`pointer-events-auto flex items-center justify-between w-full max-w-[1240px] px-4 py-3 sm:px-6 rounded-full transition-all duration-500 ${scrolled
+            ? "bg-[#060D03]/60 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+            : "bg-transparent border border-transparent"
+            }`}
         >
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="relative w-12 h-12 transform group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_12px_rgba(0,240,64,0.4)]">
+            <div className="relative w-36 h-36 transform group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_12px_rgba(0,240,64,0.4)]">
               <Image
-                src="/images/logo.svg"
+                src="/images/logo.png"
                 alt="MEB Logo"
-                width={48}
-                height={48}
+                width={144}
+                height={144}
                 className="w-full h-full"
                 priority
               />
             </div>
-            <span className="font-heading font-bold text-xl text-white tracking-tighter group-hover:text-meb-green transition-colors duration-500 hidden sm:block">
-              MEB
-            </span>
+
           </Link>
 
           {/* Desktop nav */}
@@ -114,22 +111,22 @@ export const Navbar = () => {
             className="fixed inset-0 z-[60] bg-[#060D03] lg:hidden"
           >
             <div className="relative flex flex-col h-full px-6 py-6 overflow-hidden">
-               {/* Accents */}
-               <div className="absolute top-1/4 -right-40 w-96 h-96 bg-meb-green/10 rounded-full blur-[100px] pointer-events-none" />
-               <div className="absolute bottom-0 -left-20 w-80 h-80 bg-meb-green/5 rounded-full blur-[80px] pointer-events-none" />
-               
+              {/* Accents */}
+              <div className="absolute top-1/4 -right-40 w-96 h-96 bg-meb-green/10 rounded-full blur-[100px] pointer-events-none" />
+              <div className="absolute bottom-0 -left-20 w-80 h-80 bg-meb-green/5 rounded-full blur-[80px] pointer-events-none" />
+
               <div className="flex items-center justify-between mb-16 relative z-10">
                 <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2">
-                  <div className="relative w-12 h-12 drop-shadow-[0_0_12px_rgba(0,240,64,0.4)]">
+                  <div className="relative w-36 h-36 drop-shadow-[0_0_12px_rgba(0,240,64,0.4)]">
                     <Image
-                      src="/images/logo.svg"
+                      src="/images/logo.png"
                       alt="MEB Logo"
-                      width={48}
-                      height={48}
+                      width={144}
+                      height={144}
                       className="w-full h-full"
                     />
                   </div>
-                  <span className="font-heading font-bold text-xl text-white tracking-tighter">MEB</span>
+
                 </Link>
                 <button onClick={() => setOpen(false)} className="p-3 text-white bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-colors" aria-label="Fermer">
                   <XIcon size={20} weight="bold" />
