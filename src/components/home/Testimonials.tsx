@@ -145,11 +145,10 @@ export const Testimonials = () => {
             <button
               key={i}
               onClick={() => goTo(i)}
-              className={`relative flex items-center px-5 py-2.5 rounded-full border text-xs font-mono font-bold tracking-widest uppercase transition-all duration-300 overflow-hidden ${
-                active === i
+              className={`relative flex items-center px-5 py-2.5 rounded-full border text-xs font-mono font-bold tracking-widest uppercase transition-all duration-300 overflow-hidden ${active === i
                   ? "bg-meb-green text-meb-dark border-meb-green"
                   : "text-white/50 border-white/10 hover:border-white/30 hover:text-white"
-              }`}
+                }`}
             >
               {active === i && (
                 <span

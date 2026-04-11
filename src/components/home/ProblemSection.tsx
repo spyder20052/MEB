@@ -9,22 +9,22 @@ const problems = [
   {
     title: "Naviguer la bureaucratie complexe",
     content: "Les démarches administratives au Bénin peuvent être un labyrinthe. Nous simplifions et accélérons chaque étape pour vous.",
-    image: "/images/problems/bureaucracy.jpg"
+    image: "/images/problems/commu.png"
   },
   {
     title: "Trouver des financements fiables",
     content: "L'accès au capital est le principal frein à la croissance. Notre réseau vous connecte directement aux investisseurs et banques adaptées.",
-    image: "/images/problems/finance.jpg"
+    image: "/images/journey/Image col.png"
   },
   {
     title: "Manque d'accompagnement expert",
     content: "Trop d'entrepreneurs naviguent à vue. Nos mentors chevronnés vous fournissent des cadres stratégiques éprouvés.",
-    image: "/images/problems/mentoring.jpg"
+    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=800"
   },
   {
     title: "Isolement du dirigeant",
     content: "Rejoignez une communauté active de décideurs. Ne prenez plus vos décisions stratégiques seul.",
-    image: "/images/problems/isolation.jpg"
+    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800"
   },
 ];
 
@@ -33,14 +33,14 @@ export const ProblemSection = () => {
 
   return (
     <section className="py-24 md:py-32 bg-meb-dark w-full overflow-hidden relative">
-      
+
       {/* Decorative element */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-meb-green/5 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-[1240px] mx-auto px-5 sm:px-8 relative z-10">
-        
+
         {/* Section Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
@@ -55,7 +55,7 @@ export const ProblemSection = () => {
         </motion.div>
 
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 xl:gap-20 items-start">
-          
+
           {/* Sticky Visual (Desktop Only) */}
           <div className="hidden lg:block w-1/2 sticky top-32 xl:top-40 h-[450px] lg:h-[550px] xl:h-[600px] card-solid-dark rounded-2xl overflow-hidden border border-meb-dark-border group">
             <AnimatePresence mode="wait">
@@ -67,7 +67,7 @@ export const ProblemSection = () => {
                 transition={{ duration: 0.5, ease: "easeInOut" }}
                 className="w-full h-full relative"
               >
-                <Image 
+                <Image
                   src={problems[openIndex ?? 0].image}
                   alt={problems[openIndex ?? 0].title}
                   fill
@@ -91,21 +91,19 @@ export const ProblemSection = () => {
                     onClick={() => setOpenIndex(isOpen ? null : index)}
                     className="w-full flex items-center justify-between py-6 md:py-8 transition-colors"
                   >
-                    <span 
-                      className={`font-heading font-medium text-xl md:text-2xl lg:text-[26px] xl:text-[32px] leading-tight text-left pr-6 transition-all duration-500 ${
-                        isOpen ? "text-white" : "text-meb-gray-400 group-hover:text-white"
-                      }`}
+                    <span
+                      className={`font-heading font-medium text-xl md:text-2xl lg:text-[26px] xl:text-[32px] leading-tight text-left pr-6 transition-all duration-500 ${isOpen ? "text-white" : "text-meb-gray-400 group-hover:text-white"
+                        }`}
                     >
                       {problem.title}
                     </span>
-                    
+
                     {/* Icon animé */}
-                    <motion.div 
+                    <motion.div
                       animate={{ rotate: isOpen ? 180 : 0 }}
                       transition={{ duration: 0.4, ease: "anticipate" }}
-                      className={`flex-shrink-0 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border transition-colors duration-500 ${
-                        isOpen ? "bg-meb-green border-meb-green text-meb-dark" : "border-meb-dark-border text-meb-gray-400 group-hover:border-meb-gray-400"
-                      }`}
+                      className={`flex-shrink-0 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border transition-colors duration-500 ${isOpen ? "bg-meb-green border-meb-green text-meb-dark" : "border-meb-dark-border text-meb-gray-400 group-hover:border-meb-gray-400"
+                        }`}
                     >
                       {isOpen ? <Minus size={18} weight="bold" /> : <Plus size={18} weight="bold" />}
                     </motion.div>
@@ -121,20 +119,20 @@ export const ProblemSection = () => {
                         className="overflow-hidden"
                       >
                         <div className="pb-8 lg:pb-10 pt-2">
-                           {/* Intérieur de l'accordéon : Glassmorphism léger */}
-                           <div className="relative p-5 lg:p-6 xl:p-8 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05] overflow-hidden">
-                              
-                              {/* Background Image pour Mobile Uniquement */}
-                              <div className="absolute inset-0 lg:hidden opacity-[0.20] grayscale">
-                                <Image src={problem.image} alt={problem.title} fill className="object-cover" />
-                              </div>
+                          {/* Intérieur de l'accordéon : Glassmorphism léger */}
+                          <div className="relative p-5 lg:p-6 xl:p-8 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05] overflow-hidden">
 
-                              <div className="relative z-10 border-l-[3px] border-meb-green pl-4 md:pl-5">
-                                <p className="font-body text-sm md:text-base lg:text-lg text-meb-gray-300 font-light leading-relaxed">
-                                  {problem.content}
-                                </p>
-                              </div>
-                           </div>
+                            {/* Background Image pour Mobile Uniquement */}
+                            <div className="absolute inset-0 lg:hidden opacity-[0.20] grayscale">
+                              <Image src={problem.image} alt={problem.title} fill className="object-cover" />
+                            </div>
+
+                            <div className="relative z-10 border-l-[3px] border-meb-green pl-4 md:pl-5">
+                              <p className="font-body text-sm md:text-base lg:text-lg text-meb-gray-300 font-light leading-relaxed">
+                                {problem.content}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </motion.div>
                     )}

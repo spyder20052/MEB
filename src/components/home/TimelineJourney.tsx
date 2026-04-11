@@ -74,7 +74,7 @@ export const TimelineJourney = () => {
            className="w-full h-[350px] md:h-[400px] lg:h-[500px] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden relative mb-12 group border border-meb-dark-border"
         >
           <Image 
-             src="/images/journey/timeline-bg.jpg" 
+             src="/images/journey/Image collée.png" 
              alt="Processus MEB - Accompagnement" 
              fill 
              className="object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 hover:scale-105"

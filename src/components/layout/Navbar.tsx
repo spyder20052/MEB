@@ -72,13 +72,13 @@ export const Navbar = () => {
 
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center gap-6">
-            <Link
+            {/* <Link
               href="/espace-membre"
               className="relative text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-white/50 hover:text-white transition-colors duration-300 group"
             >
               Espace Membre
               <span className="absolute -bottom-1 left-0 w-0 h-px bg-meb-green transition-all duration-300 group-hover:w-full" />
-            </Link>
+            </Link> */}
             <Link
               href="/prendre-rdv"
               className="group relative overflow-hidden inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-meb-green shadow-[0_0_20px_rgba(0,177,64,0.15)] hover:shadow-[0_0_30px_rgba(0,177,64,0.3)] transition-shadow duration-500"
@@ -155,13 +155,13 @@ export const Navbar = () => {
                 ))}
               </nav>
               <div className="mt-auto pt-10 flex flex-col gap-4 relative z-10">
-                <Link
+                {/* <Link
                   href="/espace-membre"
                   onClick={() => setOpen(false)}
                   className="font-mono text-[10px] tracking-[0.2em] uppercase font-bold text-white/50 text-center py-4 hover:text-white transition-colors"
                 >
                   Accès Espace Membre
-                </Link>
+                </Link> */}
                 <Link
                   href="/prendre-rdv"
                   onClick={() => setOpen(false)}
