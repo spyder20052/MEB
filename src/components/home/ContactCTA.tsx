@@ -5,7 +5,7 @@ import { ArrowRight, EnvelopeSimple, Phone, MapPin } from "@phosphor-icons/react
 
 export const ContactCTA = () => {
   return (
-    <section className="py-20 md:py-32 bg-meb-dark w-full overflow-hidden relative">
+    <section className="py-16 md:py-24 bg-meb-dark w-full overflow-hidden relative">
       {/* Decorative full-width line separator */}
       <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-meb-gray-600 to-transparent opacity-20" />
 
@@ -17,7 +17,7 @@ export const ContactCTA = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="lg:col-span-7 bg-white rounded-[1.5rem] md:rounded-[2rem] p-8 sm:p-12 md:p-16 flex flex-col justify-between relative overflow-hidden group border border-transparent hover:border-meb-gray-300 transition-colors duration-500 cursor-pointer min-h-[450px]"
+          className="lg:col-span-7 bg-white rounded-[1.5rem] md:rounded-[2rem] p-8 sm:p-10 md:p-12 flex flex-col justify-between relative overflow-hidden group border border-transparent hover:border-meb-gray-300 transition-colors duration-500 cursor-pointer min-h-[350px] lg:min-h-[400px]"
         >
           {/* Abstract background gradient */}
           <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] bg-gradient-to-tl from-meb-green/20 to-transparent rounded-full blur-[60px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -26,11 +26,11 @@ export const ContactCTA = () => {
             <span className="font-heading text-xs md:text-sm font-bold tracking-widest uppercase text-meb-green mb-6 block">
               Prêt à accélérer ?
             </span>
-            <h2 className="font-heading font-bold text-[32px] sm:text-[40px] md:text-[56px] lg:text-[64px] text-meb-dark leading-[1.05] tracking-tight mb-8">
+            <h2 className="font-heading font-bold text-[32px] sm:text-[40px] md:text-[48px] lg:text-[56px] text-meb-dark leading-[1.05] tracking-tight mb-6">
               Ta maison, ton réseau, <br />
               <span className="text-meb-green">ton avenir.</span>
             </h2>
-            <p className="font-body text-sm sm:text-base md:text-lg text-meb-gray-500 max-w-sm mb-12 group-hover:text-meb-dark transition-colors duration-500 border-l-2 border-meb-green pl-4">
+            <p className="font-body text-sm sm:text-base md:text-lg text-meb-gray-500 max-w-sm mb-8 group-hover:text-meb-dark transition-colors duration-500 border-l-2 border-meb-green pl-4">
               Rejoignez les leaders de demain. Nos experts sont prêts à diagnostiquer et structurer vos prochaines opportunités.
             </p>
           </div>
@@ -51,7 +51,7 @@ export const ContactCTA = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-          className="lg:col-span-5 bg-meb-green rounded-[1.5rem] md:rounded-[2rem] p-8 sm:p-12 md:p-16 flex flex-col justify-end relative overflow-hidden group cursor-crosshair min-h-[450px]"
+          className="lg:col-span-5 bg-meb-green rounded-[1.5rem] md:rounded-[2rem] p-8 sm:p-10 md:p-12 flex flex-col justify-end relative overflow-hidden group cursor-crosshair min-h-[350px] lg:min-h-[400px]"
         >
           {/* Sweeping dark background */}
           <div className="absolute inset-0 bg-meb-dark translate-y-[100%] group-hover:translate-y-[0%] transition-transform duration-500 ease-out origin-bottom" />

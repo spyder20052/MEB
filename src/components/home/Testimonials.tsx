@@ -104,11 +104,11 @@ export const Testimonials = () => {
 
   return (
     <section
-      className="py-20 md:py-32 bg-meb-dark w-full overflow-hidden relative"
+      className="py-20 md:py-32 bg-white w-full overflow-hidden relative"
       onMouseEnter={() => { isPaused.current = true; }}
       onMouseLeave={() => { isPaused.current = false; }}
     >
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-meb-green/[0.04] rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-meb-green/[0.08] rounded-full blur-[150px] pointer-events-none" />
 
       <div className="max-w-[1240px] mx-auto px-5 sm:px-8 relative z-10">
 
@@ -123,9 +123,9 @@ export const Testimonials = () => {
             <span className="font-heading text-sm font-bold tracking-widest uppercase text-meb-green mb-4 block">
               La Voix des Entrepreneurs
             </span>
-            <h2 className="font-heading font-bold text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-white max-w-2xl">
+            <h2 className="font-heading font-bold text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-meb-dark max-w-2xl">
               Ils réinventent<br />
-              <span className="font-light text-meb-gray-400">l&apos;économie.</span>
+              <span className="font-light text-meb-gray-500">l&apos;économie.</span>
             </h2>
           </motion.div>
           <motion.p
@@ -133,7 +133,7 @@ export const Testimonials = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="font-body text-sm md:text-base text-meb-gray-400 max-w-xs border-l-2 border-meb-dark-border pl-4 leading-relaxed md:pb-4"
+            className="font-body text-sm md:text-base text-meb-gray-500 max-w-xs border-l-2 border-meb-gray-300 pl-4 leading-relaxed md:pb-4"
           >
             Des centaines d&apos;entrepreneurs ont transformé leur trajectoire grâce au MEB.
           </motion.p>
@@ -146,8 +146,8 @@ export const Testimonials = () => {
               key={i}
               onClick={() => goTo(i)}
               className={`relative flex items-center px-5 py-2.5 rounded-full border text-xs font-mono font-bold tracking-widest uppercase transition-all duration-300 overflow-hidden ${active === i
-                  ? "bg-meb-green text-meb-dark border-meb-green"
-                  : "text-white/50 border-white/10 hover:border-white/30 hover:text-white"
+                ? "bg-meb-green text-meb-dark border-meb-green"
+                : "text-meb-gray-500 border-meb-gray-300 hover:border-meb-gray-500 hover:text-meb-dark"
                 }`}
             >
               {active === i && (
@@ -198,7 +198,7 @@ export const Testimonials = () => {
               >
                 {/* Quote */}
                 <div className="flex-1 flex items-center">
-                  <h3 className="font-heading font-medium italic text-[22px] md:text-[30px] lg:text-[36px] text-meb-dark leading-[1.25] tracking-tight">
+                  <h3 className="font-serif italic font-medium text-2xl md:text-3xl lg:text-[34px] text-meb-dark leading-relaxed tracking-normal">
                     &ldquo;{t.quote}&rdquo;
                   </h3>
                 </div>
@@ -256,7 +256,7 @@ export const Testimonials = () => {
             </div>
 
             {/* Stats mini-card */}
-            <div className="bg-[#0B1407] border border-white/[0.06] rounded-[1.5rem] p-6 flex items-center justify-between group hover:-translate-y-0.5 transition-transform duration-400">
+            <div className="bg-meb-dark border border-meb-dark/10 rounded-[1.5rem] p-6 flex items-center justify-between group hover:-translate-y-0.5 transition-transform duration-400">
               <div>
                 <div className="font-heading font-black text-4xl text-white tracking-tight">
                   500<span className="text-meb-green">+</span>
@@ -273,12 +273,12 @@ export const Testimonials = () => {
         </div>
 
         {/* Marquee */}
-        <div className="mt-12 overflow-hidden py-5 border-t border-white/[0.05]">
+        <div className="mt-12 overflow-hidden py-5 border-t border-meb-gray-200">
           <div className="flex gap-8 animate-[marquee_30s_linear_infinite] whitespace-nowrap">
             {brands.map((b, i) => (
               <span
                 key={i}
-                className="font-mono text-xs font-bold tracking-[0.2em] uppercase text-white/20 hover:text-meb-green transition-colors duration-300 cursor-default shrink-0 px-4"
+                className="font-mono text-xs font-bold tracking-[0.2em] uppercase text-meb-gray-400 hover:text-meb-green transition-colors duration-300 cursor-default shrink-0 px-4"
               >
                 {b}
               </span>

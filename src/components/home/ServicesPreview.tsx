@@ -6,7 +6,7 @@ import Image from "next/image";
 
 export const ServicesPreview = () => {
    return (
-      <section className="py-20 md:py-32 bg-meb-dark w-full overflow-hidden relative">
+      <section className="py-20 md:py-32 bg-white w-full overflow-hidden relative">
          <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
 
             {/* Section Header */}
@@ -25,10 +25,10 @@ export const ServicesPreview = () => {
                      whileInView={{ opacity: 1, y: 0 }}
                      viewport={{ once: true }}
                      transition={{ delay: 0.1 }}
-                     className="font-heading text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-white font-bold"
+                     className="font-heading text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-meb-dark font-bold"
                   >
                      Nos Services
-                     <br /> <span className="font-light text-meb-gray-400">Fondamentaux.</span>
+                     <br /> <span className="font-light text-meb-gray-500">Fondamentaux.</span>
                   </motion.h2>
                </div>
                <motion.div
@@ -38,7 +38,7 @@ export const ServicesPreview = () => {
                   transition={{ delay: 0.2 }}
                   className="md:pb-4"
                >
-                  <p className="font-body text-sm md:text-lg text-meb-gray-400 max-w-sm border-l-2 border-meb-dark-border pl-4 md:pl-6 leading-relaxed">
+                  <p className="font-body text-sm md:text-lg text-meb-gray-500 max-w-sm border-l-2 border-meb-gray-300 pl-4 md:pl-6 leading-relaxed">
                      Des solutions conçues sur mesure pour vous accompagner et exécuter à chaque étape de votre croissance.
                   </p>
                </motion.div>
@@ -128,7 +128,7 @@ export const ServicesPreview = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-100px" }}
                   transition={{ duration: 0.6, delay: 0.3 }}
-                  className="md:col-span-1 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-white hover:bg-meb-gray-50 transition-colors duration-500 min-h-[300px] md:min-h-[420px] p-8 md:p-10 flex flex-col justify-between"
+                  className="md:col-span-1 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-white border border-meb-gray-200 hover:bg-meb-gray-50 transition-colors duration-500 min-h-[300px] md:min-h-[420px] p-8 md:p-10 flex flex-col justify-between"
                >
                   <div className="absolute -top-10 -right-10 w-40 h-40 bg-meb-green/10 rounded-full blur-[40px] group-hover:bg-meb-green/20 transition-all duration-500 pointer-events-none" />
 

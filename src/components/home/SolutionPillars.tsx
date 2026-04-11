@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export const SolutionPillars = () => {
   return (
-    <section className="py-24 md:py-32 bg-meb-dark w-full overflow-hidden relative">
+    <section className="py-24 md:py-32 bg-[#F4F4F2] w-full overflow-hidden relative">
       <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
 
         {/* Title */}
@@ -20,9 +20,9 @@ export const SolutionPillars = () => {
             <span className="font-heading text-sm font-bold tracking-widest uppercase text-meb-green mb-4 block">
               Nos Solutions
             </span>
-            <h2 className="font-heading text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-white font-bold max-w-2xl">
+            <h2 className="font-heading text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-meb-dark font-bold max-w-2xl">
               Stratégies pour <br />
-              <span className="font-light text-meb-gray-400">votre futur.</span>
+              <span className="font-light text-meb-gray-500">votre futur.</span>
             </h2>
           </div>
         </motion.div>
