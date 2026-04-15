@@ -81,7 +81,7 @@ export const Navbar = () => {
             </Link> */}
             <Link
               href="/prendre-rdv"
-              className="group relative overflow-hidden inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-meb-green shadow-[0_0_20px_rgba(0,177,64,0.15)] hover:shadow-[0_0_30px_rgba(0,177,64,0.3)] transition-shadow duration-500"
+              className="group relative overflow-hidden inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-[#eabe07] shadow-[0_0_20px_rgba(234,186,7,0.15)] hover:shadow-[0_0_30px_rgba(234,186,7,0.3)] transition-shadow duration-500"
             >
               <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)]" />
               <span className="relative z-10 text-meb-dark font-heading font-bold uppercase tracking-widest text-[11px] transition-colors duration-500">
@@ -165,7 +165,7 @@ export const Navbar = () => {
                 <Link
                   href="/prendre-rdv"
                   onClick={() => setOpen(false)}
-                  className="relative overflow-hidden group bg-meb-green text-meb-dark font-heading font-bold uppercase tracking-widest text-[11px] text-center py-5 rounded-full"
+                  className="relative overflow-hidden group bg-[#eabe07] text-meb-dark font-heading font-bold uppercase tracking-widest text-[11px] text-center py-5 rounded-full"
                 >
                   <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)]" />
                   <span className="relative z-10 transition-colors duration-500">Prendre rendez-vous</span>

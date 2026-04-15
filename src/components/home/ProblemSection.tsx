@@ -35,7 +35,7 @@ export const ProblemSection = () => {
     <section className="py-24 md:py-32 bg-meb-dark w-full overflow-hidden relative">
 
       {/* Decorative element */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-meb-green/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#eabe07]/5 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-[1240px] mx-auto px-5 sm:px-8 relative z-10">
 
@@ -47,7 +47,7 @@ export const ProblemSection = () => {
           transition={{ duration: 0.6 }}
           className="flex flex-col mb-16 md:mb-24"
         >
-          <span className="font-heading text-sm text-meb-green font-bold tracking-widest uppercase mb-4 block">Les défis actuels</span>
+          <span className="font-heading text-sm text-[#eabe07] font-bold tracking-widest uppercase mb-4 block">Les défis actuels</span>
           <h2 className="font-heading text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-white font-bold">
             Vos obstacles, <br />
             <span className="font-light text-meb-gray-400">nos priorités.</span>
@@ -75,7 +75,7 @@ export const ProblemSection = () => {
                 />
                 {/* Lueur et Ombre Interne */}
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-meb-dark to-transparent opacity-90" />
-                <div className="absolute inset-0 bg-meb-green/10 mix-blend-overlay" />
+                <div className="absolute inset-0 bg-[#eabe07]/10 mix-blend-overlay" />
               </motion.div>
             </AnimatePresence>
           </div>
@@ -102,7 +102,7 @@ export const ProblemSection = () => {
                     <motion.div
                       animate={{ rotate: isOpen ? 180 : 0 }}
                       transition={{ duration: 0.4, ease: "anticipate" }}
-                      className={`flex-shrink-0 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border transition-colors duration-500 ${isOpen ? "bg-meb-green border-meb-green text-meb-dark" : "border-meb-dark-border text-meb-gray-400 group-hover:border-meb-gray-400"
+                      className={`flex-shrink-0 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border transition-colors duration-500 ${isOpen ? "bg-[#eabe07] border-[#eabe07] text-meb-dark" : "border-meb-dark-border text-meb-gray-400 group-hover:border-meb-gray-400"
                         }`}
                     >
                       {isOpen ? <Minus size={18} weight="bold" /> : <Plus size={18} weight="bold" />}
@@ -127,7 +127,7 @@ export const ProblemSection = () => {
                               <Image src={problem.image} alt={problem.title} fill className="object-cover" />
                             </div>
 
-                            <div className="relative z-10 border-l-[3px] border-meb-green pl-4 md:pl-5">
+                            <div className="relative z-10 border-l-[3px] border-[#eabe07] pl-4 md:pl-5">
                               <p className="font-body text-sm md:text-base lg:text-lg text-meb-gray-300 font-light leading-relaxed">
                                 {problem.content}
                               </p>

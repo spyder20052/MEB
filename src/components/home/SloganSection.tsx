@@ -20,11 +20,11 @@ export const SloganSection = () => {
                         </h2>
                         <div className="hidden md:block w-3 h-3 bg-meb-gray-200 rounded-full" />
                         <h2 className="font-heading font-black text-[42px] sm:text-[60px] md:text-[80px] lg:text-[100px] leading-none tracking-tighter text-meb-dark">
-                            TON <span className="text-meb-green">RÉSEAU.</span>
+                            TON <span className="text-[#eabe07]">RÉSEAU.</span>
                         </h2>
                         <div className="hidden md:block w-3 h-3 bg-meb-gray-200 rounded-full" />
                         <h2 className="font-heading font-black text-[42px] sm:text-[60px] md:text-[80px] lg:text-[100px] leading-none tracking-tighter text-meb-dark">
-                            TON <span className="text-meb-green">AVENIR.</span>
+                            TON <span className="text-[#c61827]">AVENIR.</span>
                         </h2>
                     </div>
 

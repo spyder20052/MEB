@@ -108,7 +108,6 @@ export const Testimonials = () => {
       onMouseEnter={() => { isPaused.current = true; }}
       onMouseLeave={() => { isPaused.current = false; }}
     >
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-meb-green/[0.08] rounded-full blur-[150px] pointer-events-none" />
 
       <div className="max-w-[1240px] mx-auto px-5 sm:px-8 relative z-10">
 
@@ -176,7 +175,6 @@ export const Testimonials = () => {
               weight="fill"
               className="absolute right-4 top-8 text-meb-gray-100 pointer-events-none select-none z-0"
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-meb-green/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-0" />
 
             {/* Stars row — static */}
             <div className="absolute top-8 md:top-14 left-8 md:left-14 lg:left-16 flex gap-1 z-10">
