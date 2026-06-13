@@ -176,19 +176,19 @@ export const Navbar = () => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] bg-[#060D03] lg:hidden"
           >
-            <div className="relative flex flex-col h-full px-6 py-6 overflow-hidden">
+            <div className="relative flex flex-col h-full px-6 py-6 overflow-y-auto overflow-x-hidden">
               {/* Accents */}
               <div className="absolute top-1/4 -right-40 w-96 h-96 bg-meb-green/10 rounded-full blur-[100px] pointer-events-none" />
               <div className="absolute bottom-0 -left-20 w-80 h-80 bg-meb-green/5 rounded-full blur-[80px] pointer-events-none" />
 
-              <div className="flex items-center justify-between mb-16 relative z-10">
+              <div className="flex items-center justify-between mb-6 relative z-10">
                 <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2">
-                  <div className="relative w-36 h-36 drop-shadow-[0_0_12px_rgba(0,240,64,0.4)]">
+                  <div className="relative w-24 h-24 drop-shadow-[0_0_12px_rgba(0,240,64,0.4)]">
                     <Image
                       src="/images/logo.png"
                       alt="MEB Logo"
-                      width={144}
-                      height={144}
+                      width={96}
+                      height={96}
                       className="w-full h-full"
                     />
                   </div>
@@ -209,7 +209,7 @@ export const Navbar = () => {
                     <Link
                       href={l.href}
                       onClick={() => setOpen(false)}
-                      className="flex items-center justify-between py-5 border-b border-white/[0.05] group overflow-hidden relative"
+                      className="flex items-center justify-between py-3 border-b border-white/[0.05] group overflow-hidden relative"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-meb-green/0 via-meb-green/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                       <span className="relative z-10 font-heading font-bold text-[36px] tracking-tight text-white group-hover:text-meb-green transition-colors duration-500">
@@ -220,7 +220,7 @@ export const Navbar = () => {
                   </motion.div>
                 ))}
               </nav>
-              <div className="mt-auto pt-10 flex flex-col gap-4 relative z-10">
+              <div className="mt-auto pt-6 flex flex-col gap-4 relative z-10">
                 {!isLoginPage && (
                   <Link
                     href="/dashboard"
