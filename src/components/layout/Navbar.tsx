@@ -221,13 +221,15 @@ export const Navbar = () => {
                 ))}
               </nav>
               <div className="mt-auto pt-10 flex flex-col gap-4 relative z-10">
-                <Link
-                  href="/dashboard"
-                  onClick={() => setOpen(false)}
-                  className="font-mono text-[10px] tracking-[0.2em] uppercase font-bold text-white/50 text-center py-4 hover:text-white transition-colors"
-                >
-                  Connexion Admin
-                </Link>
+                {!isLoginPage && (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setOpen(false)}
+                    className="font-mono text-[10px] tracking-[0.2em] uppercase font-bold text-white/50 text-center py-4 hover:text-white transition-colors"
+                  >
+                    Connexion
+                  </Link>
+                )}
                 <Link
                   href="/prendre-rdv"
                   onClick={() => setOpen(false)}
