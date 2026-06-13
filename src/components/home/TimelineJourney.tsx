@@ -91,11 +91,6 @@ export const TimelineJourney = () => {
               <span className="text-meb-green font-bold">au centre du processus.</span>
             </h2>
           </div>
-
-          {/* Subtle tech overlay corner */}
-          <div className="absolute top-6 right-6 bg-meb-dark/80 backdrop-blur-sm rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center border border-meb-gray-700/50">
-            <ArrowDownRight size={20} className="text-meb-green" />
-          </div>
         </motion.div>
 
         {/* 3-Column Symmetrical Grid for Steps */}
@@ -139,7 +134,7 @@ export const TimelineJourney = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.6, delay: 0.2 + (index * 0.15), ease: "easeOut" }}
-                className={`rounded-[1.5rem] md:rounded-[2rem] p-8 md:p-10 lg:p-12 flex flex-col justify-between relative overflow-hidden group cursor-pointer border transition-all duration-500 min-h-[320px] md:min-h-[420px] ${bgClass}`}
+                className={`rounded-[1.5rem] md:rounded-[2rem] p-8 md:p-10 lg:p-12 flex flex-col justify-between relative overflow-hidden group cursor-pointer border transition-colors duration-500 min-h-[320px] md:min-h-[420px] ${bgClass}`}
               >
                 {/* INTERACTIVE BACKGROUNDS */}
                 {isDark && (

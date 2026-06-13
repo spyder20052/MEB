@@ -7,6 +7,7 @@ import { ServicesPreview } from "@/components/home/ServicesPreview";
 import { ImpactCounter } from "@/components/home/ImpactCounter";
 import { Testimonials } from "@/components/home/Testimonials";
 import { ContactCTA } from "@/components/home/ContactCTA";
+import { EventPopup } from "@/components/home/EventPopup";
 
 export default function Home() {
   return (
@@ -18,8 +19,9 @@ export default function Home() {
       <TimelineJourney />
       <ServicesPreview />
       <ImpactCounter />
-      <Testimonials />
+      {/* <Testimonials /> */}
       <ContactCTA />
+      <EventPopup />
     </div>
   );
 }

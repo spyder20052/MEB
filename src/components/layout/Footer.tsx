@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,6 +13,8 @@ import {
   CaretRight
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
+import { getHiddenPages } from "@/utils/storage";
+import { usePathname } from "next/navigation";
 
 const links = {
   services: [
@@ -27,16 +30,30 @@ const links = {
     { label: "Afterworks", href: "/evenements/afterworks" },
     { label: "Mastermind", href: "/evenements/mastermind" },
   ],
-  apropos: [
-    { label: "Notre mission", href: "/a-propos/mission" },
-    { label: "L'équipe", href: "/a-propos/equipe" },
-    { label: "Gouvernance", href: "/a-propos/gouvernance" },
-    { label: "Impact", href: "/a-propos/impact" },
+  projets: [
+    { label: "Projets membres", href: "/projets" },
     { label: "FAQ", href: "/faq" },
   ],
 };
 
 export const Footer = () => {
+  const [hiddenPages, setHiddenPages] = useState<string[]>([]);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const loadSettings = () => {
+      const hidden = getHiddenPages();
+      setHiddenPages(hidden);
+    };
+    loadSettings();
+    window.addEventListener("meb_settings_updated", loadSettings);
+    return () => {
+      window.removeEventListener("meb_settings_updated", loadSettings);
+    };
+  }, []);
+
+  if (pathname === "/dashboard") return null;
+
   return (
     <footer className="relative bg-[#060D03] border-t border-white/[0.05] overflow-hidden pt-24 pb-8">
       {/* Tech Line Patterns */}
@@ -83,34 +100,36 @@ export const Footer = () => {
 
           {/* Link columns */}
           {([
-            { title: "Services", items: links.services },
-            { title: "Événements", items: links.evenements },
-            { title: "À propos", items: links.apropos },
-          ] as const).map((col) => (
-            <div key={col.title} className="lg:col-span-1 lg:col-start-auto">
-              <h4 className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-meb-green/70 mb-6">
-                {col.title}
-              </h4>
-              <ul className="flex flex-col gap-3">
-                {col.items.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="font-heading font-medium text-[15px] tracking-tight text-white/60 hover:text-white hover:translate-x-1 transition-all inline-block duration-300"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+            { title: "Services", href: "/services", items: links.services },
+            { title: "Événements", href: "/evenements", items: links.evenements },
+            { title: "Projets", href: "/projets", items: links.projets },
+          ] as const)
+            .filter((col) => !hiddenPages.includes(col.href))
+            .map((col) => (
+              <div key={col.title} className="lg:col-span-1 lg:col-start-auto">
+                <h4 className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-meb-green/70 mb-6">
+                  {col.title}
+                </h4>
+                <ul className="flex flex-col gap-3">
+                  {col.items.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="font-heading font-medium text-[15px] tracking-tight text-white/60 hover:text-white hover:translate-x-1 transition-all inline-block duration-300"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
         </div>
 
         {/* Huge MEB Text */}
         <div className="w-full flex justify-center mt-20 mb-8 pointer-events-none select-none overflow-hidden">
-          <span className="font-heading font-black text-[18vw] leading-none text-white/[0.03] tracking-tighter">
-            MEB<span className="text-meb-green/[0.05]">.</span>
+          <span className="font-heading font-black text-[18vw] leading-none text-white tracking-tighter">
+            MEB<span className="text-meb-green">.</span>
           </span>
         </div>
 

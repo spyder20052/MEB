@@ -5,18 +5,27 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ListIcon, XIcon, ArrowRightIcon } from "@phosphor-icons/react";
+import { usePathname } from "next/navigation";
+
+import { getHiddenPages } from "@/utils/storage";
 
 const navLinks = [
   { label: "Accueil", href: "/" },
   { label: "Services", href: "/services" },
   { label: "Événements", href: "/evenements" },
+  { label: "Partenaires", href: "/collaborateurs" },
   { label: "Communauté", href: "/communaute" },
-  { label: "À propos", href: "/a-propos" },
+  { label: "Projets", href: "/projets" },
 ];
 
 export const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [activeLinks, setActiveLinks] = useState(navLinks);
+  const pathname = usePathname();
+  const isWhiteBgPage = pathname === "/services" || pathname === "/evenements" || pathname === "/collaborateurs" || pathname === "/projets" || pathname === "/prendre-rdv" || pathname === "/faq" || pathname === "/dashboard";
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const isLoginPage = pathname === "/dashboard";
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 20);
@@ -28,6 +37,30 @@ export const Navbar = () => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsAdminLoggedIn(sessionStorage.getItem("meb_admin_logged_in") === "true");
+    };
+    checkAuth();
+    window.addEventListener("meb_admin_auth_changed", checkAuth);
+    window.addEventListener("storage", checkAuth);
+    return () => {
+      window.removeEventListener("meb_admin_auth_changed", checkAuth);
+      window.removeEventListener("storage", checkAuth);
+    };
+  }, [pathname]);  useEffect(() => {
+    const loadSettings = () => {
+      const hidden = getHiddenPages();
+      const filtered = navLinks.filter((link) => !hidden.includes(link.href));
+      setActiveLinks(filtered);
+    };
+    loadSettings();
+    window.addEventListener("meb_settings_updated", loadSettings);
+    return () => {
+      window.removeEventListener("meb_settings_updated", loadSettings);
+    };
+  }, []);
 
   return (
     <>
@@ -56,48 +89,81 @@ export const Navbar = () => {
 
           </Link>
 
+
+
           {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-1 bg-white/[0.02] rounded-full p-1 border border-white/[0.02]">
-            {navLinks.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="relative px-5 py-2 text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-white/60 hover:text-white transition-colors duration-300 rounded-full group overflow-hidden"
-              >
-                <span className="relative z-10">{l.label}</span>
-                <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out rounded-full" />
-              </Link>
-            ))}
-          </nav>
+          {!isLoginPage && (
+            <nav className="hidden lg:flex items-center gap-1 bg-white/[0.02] rounded-full p-1 border border-white/[0.02]">
+              {activeLinks.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className={`relative px-5 py-2 text-[10px] font-mono font-bold tracking-[0.2em] uppercase transition-colors duration-300 rounded-full group overflow-hidden ${
+                    scrolled
+                      ? "text-white/60 hover:text-white"
+                      : isWhiteBgPage
+                        ? "text-meb-dark/60 hover:text-meb-dark"
+                        : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  <span className="relative z-10">{l.label}</span>
+                  <div className={`absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out rounded-full ${
+                    scrolled
+                      ? "bg-white/10"
+                      : isWhiteBgPage
+                        ? "bg-meb-dark/10"
+                        : "bg-white/10"
+                  }`} />
+                </Link>
+              ))}
+            </nav>
+          )}
 
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center gap-6">
-            {/* <Link
-              href="/espace-membre"
-              className="relative text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-white/50 hover:text-white transition-colors duration-300 group"
-            >
-              Espace Membre
-              <span className="absolute -bottom-1 left-0 w-0 h-px bg-meb-green transition-all duration-300 group-hover:w-full" />
-            </Link> */}
-            <Link
-              href="/prendre-rdv"
-              className="group relative overflow-hidden inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-[#eabe07] shadow-[0_0_20px_rgba(234,186,7,0.15)] hover:shadow-[0_0_30px_rgba(234,186,7,0.3)] transition-shadow duration-500"
-            >
-              <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)]" />
-              <span className="relative z-10 text-meb-dark font-heading font-bold uppercase tracking-widest text-[11px] transition-colors duration-500">
-                Prendre RDV
-              </span>
-            </Link>
+            {!isLoginPage && (
+              <Link
+                href="/dashboard"
+                className={`px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] transition-colors duration-300 rounded-full ${
+                  scrolled
+                    ? "text-white/60 hover:text-white hover:bg-white/10"
+                    : isWhiteBgPage
+                      ? "text-meb-dark/60 hover:text-meb-dark hover:bg-black/5"
+                      : "text-white/60 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                Connexion
+              </Link>
+            )}
+            {!isLoginPage && (
+              <Link
+                href="/prendre-rdv"
+                className="group relative overflow-hidden inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-[#eabe07] shadow-[0_0_20px_rgba(234,186,7,0.15)] hover:shadow-[0_0_30px_rgba(234,186,7,0.3)] transition-shadow duration-500"
+              >
+                <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)]" />
+                <span className="relative z-10 text-meb-dark font-heading font-bold uppercase tracking-widest text-[11px] transition-colors duration-500">
+                  Prendre RDV
+                </span>
+              </Link>
+            )}
           </div>
-
+ 
           {/* Mobile Toggle */}
-          <button
-            onClick={() => setOpen(true)}
-            className="lg:hidden p-2.5 text-white bg-white/5 hover:bg-white/10 rounded-full backdrop-blur-md border border-white/10 transition-colors"
-            aria-label="Menu"
-          >
-            <ListIcon size={20} weight="bold" />
-          </button>
+          {!isLoginPage && (
+            <button
+              onClick={() => setOpen(true)}
+              className={`lg:hidden p-2.5 rounded-full backdrop-blur-md transition-colors ${
+                scrolled
+                  ? "text-white bg-white/5 border border-white/10 hover:bg-white/10"
+                  : isWhiteBgPage
+                    ? "text-meb-dark bg-meb-dark/5 border border-meb-dark/10 hover:bg-meb-dark/10"
+                    : "text-white bg-white/5 border border-white/10 hover:bg-white/10"
+              }`}
+              aria-label="Menu"
+            >
+              <ListIcon size={20} weight="bold" />
+            </button>
+          )}
         </motion.header>
       </div>
 
@@ -133,7 +199,7 @@ export const Navbar = () => {
                 </button>
               </div>
               <nav className="flex flex-col gap-2 flex-1 relative z-10">
-                {navLinks.map((l, i) => (
+                {activeLinks.map((l, i) => (
                   <motion.div
                     key={l.href}
                     initial={{ opacity: 0, y: 20 }}
@@ -155,13 +221,13 @@ export const Navbar = () => {
                 ))}
               </nav>
               <div className="mt-auto pt-10 flex flex-col gap-4 relative z-10">
-                {/* <Link
-                  href="/espace-membre"
+                <Link
+                  href="/dashboard"
                   onClick={() => setOpen(false)}
                   className="font-mono text-[10px] tracking-[0.2em] uppercase font-bold text-white/50 text-center py-4 hover:text-white transition-colors"
                 >
-                  Accès Espace Membre
-                </Link> */}
+                  Connexion Admin
+                </Link>
                 <Link
                   href="/prendre-rdv"
                   onClick={() => setOpen(false)}

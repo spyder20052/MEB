@@ -3,6 +3,8 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import Image from "next/image";
+import Link from "next/link";
+
 
 export const ServicesPreview = () => {
    return (
@@ -47,7 +49,7 @@ export const ServicesPreview = () => {
             {/* Dynamic Bento Grid - 2 Rows, 3 Columns */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
 
-               {/* Card 1: Création & Structuration (Dark / Wide / Col Span 2) */}
+               {/* Card 1: Positionnement Stratégique (Dark / Wide / Col Span 2) */}
                <motion.div
                   initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -74,21 +76,18 @@ export const ServicesPreview = () => {
                            <span className="font-mono text-meb-gray-400 group-hover:text-meb-green transition-colors duration-500 text-lg">01</span>
                            <div className="h-[1px] w-12 bg-meb-gray-700 group-hover:bg-meb-green transition-colors duration-500" />
                         </div>
+                        <span className="font-mono text-xs font-bold text-meb-green uppercase tracking-widest block mb-2">10 000 FCFA</span>
                         <h3 className="font-heading font-bold text-3xl md:text-4xl lg:text-[40px] leading-tight text-white mb-4">
-                           Création & <br />Structuration
+                           Positionnement <br />Stratégique
                         </h3>
                         <p className="font-body text-sm md:text-base text-meb-gray-400 group-hover:text-meb-gray-300 transition-colors duration-500 leading-relaxed">
-                           Nous préparons le terrain pour votre succès avec une approche rigoureuse et stratégique, adaptée aux startups et PME naissantes.
+                           Identifiez qui vous êtes en tant qu&apos;entrepreneur, où en est votre projet, et quelle est votre place dans la chaîne de valeur.
                         </p>
-                     </div>
-
-                     <div className="bg-white/5 border border-white/10 backdrop-blur-sm p-4 rounded-full text-white group-hover:bg-meb-green group-hover:text-meb-dark group-hover:-translate-y-2 group-hover:translate-x-2 transition-all duration-500 self-start md:self-end">
-                        <ArrowUpRight size={28} weight="bold" />
                      </div>
                   </div>
                </motion.div>
 
-               {/* Card 2: Accompagnement & Financement (Green / Tall / Col Span 1) */}
+               {/* Card 2: Orientation & Conseil (Green / Tall / Col Span 1) */}
                <motion.div
                   initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -106,17 +105,15 @@ export const ServicesPreview = () => {
                   <div className="relative z-10 flex-1 flex flex-col">
                      <div className="flex justify-between items-start mb-auto">
                         <span className="font-mono text-meb-dark group-hover:text-meb-green transition-colors duration-700 text-lg">02</span>
-                        <div className="bg-meb-dark text-meb-green group-hover:bg-white group-hover:text-meb-dark p-3 rounded-full transition-all duration-500 transform group-hover:scale-110">
-                           <ArrowUpRight size={24} weight="bold" />
-                        </div>
                      </div>
 
                      <div className="mt-12">
+                        <span className="font-mono text-xs font-bold text-meb-dark group-hover:text-meb-green transition-colors duration-500 uppercase tracking-widest block mb-2">10 000 FCFA</span>
                         <h3 className="font-heading font-bold text-3xl md:text-4xl leading-tight text-meb-dark group-hover:text-white transition-colors duration-500 mb-4">
-                           Capital & <br />Financement
+                           Orientation <br />& Conseil
                         </h3>
                         <p className="font-body text-sm font-medium text-meb-dark/80 group-hover:text-meb-gray-400 transition-colors duration-500">
-                           Ne laissez pas vos idées manquer de ressources. Nos partenaires stratégiques sont à disposition pour la levée de fonds.
+                           Identifiez vos alliés naturels dans l&apos;écosystème : la SAE adaptée, les acteurs amont et aval, les ressources disponibles.
                         </p>
                      </div>
                   </div>
@@ -133,20 +130,20 @@ export const ServicesPreview = () => {
                   <div className="absolute -top-10 -right-10 w-40 h-40 bg-meb-green/10 rounded-full blur-[40px] group-hover:bg-meb-green/20 transition-all duration-500 pointer-events-none" />
 
                   <span className="font-heading text-xs font-bold tracking-widest uppercase text-meb-gray-500 group-hover:text-meb-dark transition-colors duration-500">
-                     Vers l'excellence
+                     Vers l&apos;excellence
                   </span>
 
                   <div>
                      <h3 className="font-heading font-bold text-2xl md:text-3xl lg:text-[32px] leading-tight text-meb-dark mb-6">
-                        Découvrir tous <br />notre catalogue.
+                        Découvrir tout <br />notre catalogue.
                      </h3>
-                     <div className="inline-flex items-center gap-2 border-b-2 border-meb-dark pb-1 font-body font-bold text-sm text-meb-dark group-hover:text-meb-green group-hover:border-meb-green transition-colors duration-300">
-                        Explorer <ArrowUpRight size={16} weight="bold" />
-                     </div>
+                     <Link href="/services" className="inline-flex items-center gap-2 border-b-2 border-meb-dark pb-1 font-body font-bold text-sm text-meb-dark group-hover:text-meb-green group-hover:border-meb-green transition-colors duration-300">
+                        Explorer
+                     </Link>
                   </div>
                </motion.div>
 
-               {/* Card 4: Développement & Croissance (Dark Photo / Wide / Col Span 2) */}
+               {/* Card 4: Assistance RDV (Dark Photo / Wide / Col Span 2) */}
                <motion.div
                   initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -172,22 +169,17 @@ export const ServicesPreview = () => {
                            <span className="font-mono text-meb-gray-400 group-hover:text-white transition-colors duration-500 text-lg">03</span>
                            <div className="h-[1px] w-12 bg-meb-gray-700 group-hover:bg-white transition-colors duration-500" />
                         </div>
+                        <span className="font-mono text-xs font-bold text-meb-green uppercase tracking-widest block mb-2">10 000 FCFA</span>
                         <h3 className="font-heading font-bold text-3xl md:text-4xl lg:text-[40px] leading-tight text-white mb-4">
-                           Développement <br />& Croissance
+                           Assistance RDV <br />& Relations
                         </h3>
                         <p className="font-body text-sm md:text-base text-meb-gray-400 group-hover:text-meb-gray-300 transition-colors duration-500 leading-relaxed border-l-2 border-meb-green pl-4">
-                           Des solutions avancées pour scaler vos opérations, conquérir de nouveaux marchés, et asseoir un leadership imbattable.
+                           La MEB prend en charge la recherche et la prise de contact avec vos interlocuteurs cibles. Vous arrivez au bon endroit, au bon moment.
                         </p>
                      </div>
                   </div>
 
-                  {/* Floating Top Right Button */}
-                  <div className="absolute top-8 right-8 bg-black/40 border border-white/10 backdrop-blur-md p-4 rounded-full text-white group-hover:bg-white group-hover:text-meb-dark group-hover:-translate-y-1 group-hover:translate-x-1 transition-all duration-500 z-10">
-                     <ArrowUpRight size={24} weight="bold" />
-                  </div>
-
                </motion.div>
-
             </div>
          </div>
       </section>

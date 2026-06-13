@@ -1,7 +1,10 @@
 "use client";
-
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
+import { getHiddenPages } from "@/utils/storage";
+import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
 import {
   ArrowUpRightIcon,
   ChartLineUpIcon,
@@ -10,26 +13,29 @@ import {
   MagnifyingGlassIcon,
   CalendarCheckIcon,
   ArrowRightIcon,
+  Check
 } from "@phosphor-icons/react";
 
 const services = [
   {
     number: "01",
     icon: <MagnifyingGlassIcon size={28} weight="bold" />,
-    title: "Positionnement Stratégique",
+    title: "Positionnement",
     tagline: "Clarifiez votre marché",
-    desc: "Analyse approfondie de votre positionnement concurrentiel, identification de votre segment cible, et formalisation de votre proposition de valeur unique.",
-    highlights: ["Audit de positionnement", "Étude de marché sectorielle", "Validation de segment"],
+    desc: "Identifiez qui vous êtes en tant qu'entrepreneur, où en est votre projet, et quelle est votre place dans la chaîne de valeur.",
+    price: "10 000 FCFA",
+    highlights: ["Audit de positionnement", "Diagnostic de projet", "Analyse de chaîne de valeur"],
     theme: "dark",
     size: "large",
   },
   {
     number: "02",
     icon: <ArrowRightIcon size={28} weight="bold" />,
-    title: "Orientation & Conseil",
-    tagline: "Un cap clair",
-    desc: "Des sessions stratégiques individuelles avec nos experts pour définir vos priorités et franchir les étapes critiques de votre développement.",
-    highlights: ["Sessions 1-to-1", "Plan d'action trimestriel", "Suivi mensuel"],
+    title: "Orientation",
+    tagline: "Un cap clair dans l'écosystème",
+    desc: "Identifiez vos alliés naturels dans l'écosystème : la structure d'accompagnement (SAE) adaptée, les acteurs amont et aval, les ressources disponibles.",
+    price: "10 000 FCFA",
+    highlights: ["Cartographie des acteurs d'appui", "Liste des SAE identifiées", "Recommandation d'orientation"],
     theme: "green",
     size: "small",
   },
@@ -37,40 +43,33 @@ const services = [
     number: "03",
     icon: <CalendarCheckIcon size={28} weight="bold" />,
     title: "Assistance RDV",
-    tagline: "Des portes ouvertes",
-    desc: "Notre réseau vous ouvre les bonnes portes. Accédez directement aux décideurs, banques, investisseurs et partenaires institutionnels.",
-    highlights: ["Mise en relation directe", "Préparation aux entretiens", "Suivi post-RDV"],
+    tagline: "Mise en relation directe",
+    desc: "La MEB prend en charge la recherche et la prise de contact avec vos interlocuteurs cibles. Vous arrivez au bon endroit, au bon moment.",
+    price: "10 000 FCFA",
+    highlights: ["Recherche de contacts clés", "Prise de contact officielle", "RDV confirmés sous 48h"],
     theme: "white",
     size: "small",
   },
   {
     number: "04",
     icon: <ChartLineUpIcon size={28} weight="bold" />,
-    title: "Analyse Sectorielle",
-    tagline: "La data au service de vos décisions",
-    desc: "Rapports sectoriels, veille concurrentielle et intelligence économique pour vous donner une longueur d'avance sur votre marché.",
-    highlights: ["Rapports mensuels", "Benchmarking sectoriel", "Alertes tendances"],
+    title: "Informations Sectorielles",
+    tagline: "Décryptez votre secteur",
+    desc: "Obtenez les informations clés sur un secteur d'activité précis du marché béninois : acteurs, réglementation, opportunités, défis.",
+    price: "10 000 FCFA",
+    highlights: ["Fiche sectorielle synthétique", "Réglementation et barrières", "Opportunités & défis"],
     theme: "dark",
     size: "large",
   },
   {
     number: "05",
     icon: <UsersThreeIcon size={28} weight="bold" />,
-    title: "Communauté & Réseau",
-    tagline: "Ne travaillez plus seul",
-    desc: "Rejoignez une communauté active d'entrepreneurs, participez aux masterminds mensuels et créez des synergies durables.",
-    highlights: ["Accès communauté privée", "Mastermind mensuel", "Events exclusifs"],
+    title: "Analyse Sectorielle",
+    tagline: "La data au service de vos décisions",
+    desc: "Analyse approfondie d'une chaîne de valeur complète selon une problématique définie. Un outil d'aide à la décision sur mesure.",
+    price: "Sur mesure",
+    highlights: ["Rapport d'analyse complet", "Présentation et restitution", "Recommandations stratégiques"],
     theme: "green",
-    size: "small",
-  },
-  {
-    number: "06",
-    icon: <HandshakeIcon size={28} weight="bold" />,
-    title: "Accompagnement RH & Structuration",
-    tagline: "Scalez votre organisation",
-    desc: "Recrutement, structuration d'équipe, politique RH et outils de gestion adaptés aux PME en croissance rapide.",
-    highlights: ["Audit organisationnel", "Fiches de poste & process", "Plan de formation"],
-    theme: "white",
     size: "small",
   },
 ];
@@ -83,37 +82,215 @@ const process = [
 ];
 
 export default function ServicesPage() {
-  return (
-    <div className="min-h-screen bg-[#060D03] pt-32">
+  const [isPageHidden, setIsPageHidden] = useState(false);
 
-      {/* ── HERO ─────────────────────────────────────── */}
-      <section className="max-w-[1240px] mx-auto px-5 sm:px-8 pb-20 md:pb-32">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <span className="font-mono text-[11px] font-bold tracking-[0.25em] uppercase text-meb-green mb-6 mt-16 block">
-            Ce que nous faisons
-          </span>
-          <h1 className="font-heading font-bold text-[52px] sm:text-[72px] md:text-[96px] lg:text-[120px] leading-[0.95] tracking-tight text-white mb-8">
-            Nos<br />
-            <span className="text-white/20">Services</span>
-          </h1>
-          <div className="flex flex-col md:flex-row md:items-end gap-8 md:gap-20">
-            <p className="font-body text-lg md:text-xl text-white/60 max-w-lg leading-relaxed border-l-2 border-meb-green pl-6">
-              Six piliers d&apos;excellence pour accompagner chaque étape
-              de la croissance de votre entreprise — de la naissance à l&apos;expansion.
-            </p>
-            <Link
-              href="/prendre-rdv"
-              className="group inline-flex items-center gap-4 bg-meb-green text-meb-dark px-8 py-4 rounded-full font-heading font-bold uppercase tracking-widest text-[11px] hover:scale-105 transition-transform duration-300 shadow-[0_0_30px_rgba(0,177,64,0.2)] self-start md:self-end shrink-0"
-            >
-              Démarrer maintenant
-              <ArrowUpRightIcon size={18} weight="bold" className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
+  useEffect(() => {
+    const hidden = getHiddenPages();
+    if (hidden.includes("/services")) {
+      setIsPageHidden(true);
+    }
+  }, []);
+
+  if (isPageHidden) {
+    return <PageHiddenFallback pageName="Services" />;
+  }
+
+  return (
+    <div className="min-h-screen bg-white text-meb-dark pt-44">
+
+      {/* ── BENTO HERO SECTION (INSPIRED BY USER DESIGN) ───────────────────────── */}
+      <section className="max-w-[1240px] mx-auto px-5 sm:px-8 pb-20 pt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch">
+          
+          {/* LEFT COLUMN: Texts & Solutions (col-span-7) */}
+          <div className="lg:col-span-7 flex flex-col justify-between">
+            <div className="mb-8">
+              <motion.h1 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="font-heading font-black text-[10vw] sm:text-[7vw] lg:text-[4.8vw] leading-[1.05] tracking-tighter text-meb-dark uppercase"
+              >
+                DES IDÉES <br />
+                <span className="text-meb-green">AMBITIEUSES</span> <br />
+                <span>CONCRÈTES.</span>
+              </motion.h1>
+            </div>
+
+            {/* Separator and Sub-info */}
+            <div className="border-t border-meb-gray-200 pt-8 mt-4 grid grid-cols-1 sm:grid-cols-2 gap-8">
+              <div>
+                <h3 className="font-mono text-xs font-bold tracking-widest text-meb-dark/40 uppercase mb-2">Nos Solutions</h3>
+                <p className="font-body text-sm text-meb-gray-500 leading-relaxed">
+                  De l&apos;idée à la réalisation. Un accompagnement de bout en bout pour tous les entrepreneurs et PME du Bénin.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-mono text-xs font-bold tracking-widest text-meb-dark/40 uppercase mb-2">Notre Méthodologie</h3>
+                <p className="font-body text-sm text-meb-gray-500 leading-relaxed">
+                  Une approche immersive sur le terrain, structurée pour valider et scaler vos projets au cœur de l&apos;écosystème.
+                </p>
+              </div>
+            </div>
           </div>
-        </motion.div>
+
+          {/* RIGHT COLUMN: Soft Green Folder Card (col-span-5) */}
+          <div className="lg:col-span-5 flex flex-col justify-stretch">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="relative pt-6 w-full flex flex-col flex-1 cursor-pointer group/card hover:-translate-y-2 transition-all duration-500"
+            >
+              {/* Folder Tab */}
+              <div className="absolute top-0 right-0 w-36 h-6 bg-[#E8F5EE] rounded-t-2xl flex items-center justify-end px-4">
+                <div className="flex gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-meb-dark/30" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-white/50" />
+                </div>
+              </div>
+
+              {/* Main Card Body */}
+              <div className="w-full flex-1 bg-[#E8F5EE] rounded-b-3xl rounded-tl-3xl p-8 flex flex-col justify-between min-h-[350px] md:min-h-[400px]">
+                <div className="flex justify-between items-start mb-6">
+                  <span className="font-mono text-[10px] font-bold tracking-widest text-meb-dark uppercase opacity-70">
+                    Votre Boost Entrepreneurial
+                  </span>
+                </div>
+
+                {/* Entrepreneur Image Container */}
+                <div className="relative w-full h-[180px] md:h-[220px] rounded-2xl overflow-hidden mb-6">
+                  <Image 
+                    src="/images/entrepreneur-2.png" 
+                    alt="Entrepreneur MEB" 
+                    fill 
+                    className="object-cover object-top grayscale group-hover/card:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                </div>
+
+                {/* Call To Action Button (Pill styled like the image) */}
+                <Link
+                  href="/prendre-rdv"
+                  className="w-full bg-transparent border border-meb-dark/20 hover:border-meb-dark rounded-full px-6 py-4 flex items-center justify-between text-meb-dark font-heading font-bold uppercase tracking-wider text-[11px] transition-colors duration-300 group"
+                >
+                  Réserver ma session gratuite
+                  <div className="w-8 h-8 rounded-full bg-meb-dark text-[#E8F5EE] flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <ArrowRightIcon size={16} weight="bold" />
+                  </div>
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+
+        </div>
+
+        {/* ── BOTTOM BENTO ROW ────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mt-16 items-start">
+          
+          {/* BOTTOM LEFT: Pill tags (col-span-5) */}
+          <div className="lg:col-span-5 flex flex-col justify-center h-full">
+            <h3 className="font-mono text-xs font-bold tracking-widest text-meb-dark/40 uppercase mb-4">
+              Domaines d&apos;expertise
+            </h3>
+            {/* Pill Tags */}
+            <div className="flex flex-wrap gap-2">
+              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-meb-dark border border-meb-dark/20 rounded-full px-4 py-2 bg-transparent hover:border-meb-green hover:text-meb-green transition-colors duration-300">
+                Orientation Stratégique
+              </span>
+              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-meb-dark border border-meb-dark/20 rounded-full px-4 py-2 bg-transparent hover:border-meb-green hover:text-meb-green transition-colors duration-300">
+                Accompagnement RH
+              </span>
+              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-meb-dark border border-meb-dark/20 rounded-full px-4 py-2 bg-transparent hover:border-meb-green hover:text-meb-green transition-colors duration-300">
+                Levée de Fonds
+              </span>
+              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-meb-dark border border-meb-dark/20 rounded-full px-4 py-2 bg-transparent hover:border-meb-green hover:text-meb-green transition-colors duration-300">
+                Études de Marché
+              </span>
+            </div>
+          </div>
+
+          {/* BOTTOM RIGHT: Three Folder Cards (col-span-7) */}
+          <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Folder 1: MEB Green */}
+            <div className="relative pt-6 w-full flex flex-col min-h-[220px] group cursor-pointer hover:-translate-y-2 transition-all duration-500">
+              {/* Tab */}
+              <div className="absolute top-0 right-0 w-28 h-6 bg-meb-green rounded-t-xl flex items-center justify-end px-3">
+                <div className="flex gap-1">
+                  <div className="w-1 h-1 rounded-full bg-black/20" />
+                  <div className="w-1 h-1 rounded-full bg-white/40" />
+                </div>
+              </div>
+              {/* Body */}
+              <div className="w-full flex-1 bg-meb-green rounded-b-2xl rounded-tl-2xl p-6 flex flex-col justify-between text-meb-dark">
+                <div className="font-heading font-extrabold text-[15px] leading-tight uppercase tracking-tight">
+                  Solutions <br />Entrepreneurs <br />Uniques
+                </div>
+                <div className="mt-8 text-meb-dark opacity-85 group-hover:scale-110 transition-transform duration-300">
+                  <HandshakeIcon size={32} weight="duotone" />
+                </div>
+              </div>
+            </div>
+
+            {/* Folder 2: Light Gray */}
+            <div className="relative pt-6 w-full flex flex-col min-h-[220px] group cursor-pointer hover:-translate-y-2 transition-all duration-500">
+              {/* Tab */}
+              <div className="absolute top-0 right-0 w-28 h-6 bg-[#F5F5F5] rounded-t-xl flex items-center justify-end px-3">
+                <div className="flex gap-1">
+                  <div className="w-1 h-1 rounded-full bg-black/20" />
+                  <div className="w-1 h-1 rounded-full bg-white/40" />
+                </div>
+              </div>
+              {/* Body */}
+              <div className="w-full flex-1 bg-[#F5F5F5] rounded-b-2xl rounded-tl-2xl p-6 flex flex-col justify-between text-meb-dark">
+                <div className="flex justify-between items-start">
+                  <span className="font-mono text-[9px] font-bold tracking-widest uppercase opacity-40">MEB Hub</span>
+                  <div className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1">
+                    <ArrowUpRightIcon size={20} weight="bold" />
+                  </div>
+                </div>
+                <div className="font-heading font-extrabold text-lg leading-tight uppercase tracking-tight mt-auto pt-6">
+                  Nos Études <br />de Cas
+                </div>
+              </div>
+            </div>
+
+            {/* Folder 3: Yellow/Gold */}
+            <div className="relative pt-6 w-full flex flex-col min-h-[220px] group cursor-pointer hover:-translate-y-2 transition-all duration-500">
+              {/* Tab */}
+              <div className="absolute top-0 right-0 w-28 h-6 bg-meb-yellow rounded-t-xl flex items-center justify-end px-3">
+                <div className="flex gap-1">
+                  <div className="w-1 h-1 rounded-full bg-black/20" />
+                  <div className="w-1 h-1 rounded-full bg-white/40" />
+                </div>
+              </div>
+              {/* Body */}
+              <div className="w-full flex-1 bg-meb-yellow rounded-b-2xl rounded-tl-2xl p-6 flex flex-col justify-between text-meb-dark">
+                <div className="font-heading font-extrabold text-[11px] leading-tight uppercase tracking-widest opacity-60">
+                  Projets Accompagnés
+                </div>
+                <div className="font-heading font-black text-5xl tracking-tighter mt-auto pt-6 group-hover:scale-105 transition-transform duration-300 origin-left">
+                  10+
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── SERVICE GRID TITLE ──────────────────────── */}
+      <section className="max-w-[1240px] mx-auto px-5 sm:px-8 pt-12">
+        <div className="border-t border-meb-gray-200 pt-12">
+          <span className="font-mono text-[11px] font-bold tracking-[0.25em] uppercase text-meb-green mb-4 block">
+            Nos Piliers
+          </span>
+          <h2 className="font-heading font-bold text-3xl md:text-5xl text-meb-dark">
+            Nos Services Fondamentaux
+          </h2>
+        </div>
       </section>
 
       {/* ── SERVICE GRID ─────────────────────────────── */}
@@ -130,11 +307,11 @@ export default function ServicesPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ duration: 0.6, delay: i * 0.08, ease: "easeOut" }}
-                className={`group relative rounded-[1.5rem] md:rounded-[2rem] overflow-hidden cursor-pointer transition-all duration-500 flex flex-col
+                className={`group relative rounded-[1.5rem] md:rounded-[2rem] overflow-hidden cursor-pointer transition-colors duration-500 flex flex-col
                   ${s.size === "large" ? "md:col-span-2 min-h-[380px]" : "min-h-[320px]"}
                   ${isDark ? "bg-[#0B1407] border border-white/[0.06] hover:border-meb-green/50" : ""}
                   ${isGreen ? "bg-meb-green" : ""}
-                  ${s.theme === "white" ? "bg-white" : ""}
+                  ${s.theme === "white" ? "bg-white border border-meb-gray-200 hover:border-meb-green/50" : ""}
                 `}
               >
                 {/* Dark sweep on green card */}
@@ -174,13 +351,20 @@ export default function ServicesPage() {
                     `}>
                       {s.tagline}
                     </p>
-                    <h3 className={`font-heading font-bold text-2xl md:text-3xl tracking-tight mb-4 leading-tight transition-colors duration-500
+                    <h3 className={`font-heading font-bold text-2xl md:text-3xl tracking-tight mb-2 leading-tight transition-colors duration-500
                       ${isDark ? "text-white" : ""}
                       ${isGreen ? "text-meb-dark group-hover:text-white" : ""}
                       ${s.theme === "white" ? "text-meb-dark" : ""}
                     `}>
                       {s.title}
                     </h3>
+                    <p className={`font-mono text-xs font-bold uppercase tracking-wider mb-4
+                      ${isDark ? "text-[#F5C518]" : ""}
+                      ${isGreen ? "text-[#060D03] group-hover:text-[#F5C518]" : ""}
+                      ${s.theme === "white" ? "text-[#00B140]" : ""}
+                    `}>
+                      Tarif : {s.price}
+                    </p>
                     <p className={`font-body text-sm leading-relaxed mb-6 transition-colors duration-500
                       ${isDark ? "text-white/50 group-hover:text-white/70" : ""}
                       ${isGreen ? "text-meb-dark/70 group-hover:text-white/70" : ""}
@@ -236,8 +420,10 @@ export default function ServicesPage() {
         </div>
       </section>
 
+
+
       {/* ── PROCESS ──────────────────────────────────── */}
-      <section className="border-t border-white/[0.05] py-24 md:py-32">
+      <section className="max-t border-t border-meb-gray-200 py-24 md:py-32">
         <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -248,9 +434,9 @@ export default function ServicesPage() {
             <span className="font-mono text-[11px] font-bold tracking-[0.25em] uppercase text-meb-green mb-4 block">
               Comment ça marche
             </span>
-            <h2 className="font-heading font-bold text-[40px] md:text-[64px] leading-[1.05] tracking-tight text-white">
+            <h2 className="font-heading font-bold text-[40px] md:text-[64px] leading-[1.05] tracking-tight text-meb-dark">
               Notre processus<br />
-              <span className="text-white/20">en 4 étapes.</span>
+              <span className="text-meb-gray-400">en 4 étapes.</span>
             </h2>
           </motion.div>
 
@@ -262,17 +448,17 @@ export default function ServicesPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-8 group hover:bg-white/[0.04] hover:-translate-y-1 transition-all duration-500 relative overflow-hidden"
+                className="bg-meb-gray-50 border border-meb-gray-200 rounded-2xl p-8 group hover:bg-meb-gray-100/50 hover:-translate-y-1 transition-all duration-500 relative overflow-hidden"
               >
                 {/* Number watermark */}
-                <div className="absolute -right-2 -top-4 font-heading font-black text-[80px] leading-none text-white/[0.04] group-hover:text-white/[0.07] transition-colors duration-500 pointer-events-none select-none">
+                <div className="absolute -right-2 -top-4 font-heading font-black text-[80px] leading-none text-meb-dark/[0.04] group-hover:text-meb-dark/[0.07] transition-colors duration-500 pointer-events-none select-none">
                   {p.step}
                 </div>
-                <div className="w-10 h-10 rounded-full bg-meb-green/10 flex items-center justify-center mb-6 group-hover:bg-meb-green transition-colors duration-500">
+                <div className="w-10 h-10 rounded-full bg-meb-green/15 flex items-center justify-center mb-6 group-hover:bg-meb-green transition-colors duration-500">
                   <div className="w-2.5 h-2.5 rounded-full bg-meb-green group-hover:bg-meb-dark transition-colors duration-500" />
                 </div>
-                <h3 className="font-heading font-bold text-xl text-white mb-3">{p.title}</h3>
-                <p className="font-body text-sm text-white/50 leading-relaxed group-hover:text-white/70 transition-colors duration-500">{p.desc}</p>
+                <h3 className="font-heading font-bold text-xl text-meb-dark mb-3">{p.title}</h3>
+                <p className="font-body text-sm text-meb-gray-500 leading-relaxed group-hover:text-meb-dark transition-colors duration-500">{p.desc}</p>
               </motion.div>
             ))}
           </div>

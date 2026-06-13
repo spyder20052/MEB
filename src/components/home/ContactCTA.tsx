@@ -71,7 +71,7 @@ export const ContactCTA = () => {
 
             {/* Email Case */}
             <motion.a
-              href="mailto:hello@meb.bj"
+              href="mailto:contact@entrepreneurbenin.pro"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -80,12 +80,12 @@ export const ContactCTA = () => {
               <div className="w-8 h-8 rounded-full bg-[#eabe07]/10 flex items-center justify-center text-[#eabe07] group-hover:bg-[#eabe07] group-hover:text-meb-dark transition-colors">
                 <EnvelopeSimple size={16} weight="fill" />
               </div>
-              <span className="font-mono text-xs text-white/60 tracking-tight group-hover:text-white transition-colors">hello@meb.bj</span>
+              <span className="font-mono text-xs text-white/60 tracking-tight group-hover:text-white transition-colors">contact@entrepreneurbenin.pro</span>
             </motion.a>
 
             {/* Phone Case */}
             <motion.a
-              href="tel:+22900000000"
+              href="tel:+2290160007007"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -95,7 +95,7 @@ export const ContactCTA = () => {
               <div className="w-8 h-8 rounded-full bg-[#c61827]/10 flex items-center justify-center text-[#c61827] group-hover:bg-[#c61827] group-hover:text-white transition-colors">
                 <Phone size={16} weight="fill" />
               </div>
-              <span className="font-mono text-xs text-white/60 tracking-tight group-hover:text-white transition-colors">+229 00 00 00 00</span>
+              <span className="font-mono text-xs text-white/60 tracking-tight group-hover:text-white transition-colors">+229 01 60 00 70 07</span>
             </motion.a>
 
             {/* Location Case */}
@@ -110,8 +110,8 @@ export const ContactCTA = () => {
                 <MapPin size={16} weight="fill" />
               </div>
               <p className="font-body text-[11px] text-white/40 leading-relaxed group-hover:text-white/80 transition-colors">
-                Quartier Jack, Cotonou<br />
-                République du Bénin
+                Akpakpa, Cinéma Concorde<br />
+                Cotonou, République du Bénin
               </p>
             </motion.div>
 

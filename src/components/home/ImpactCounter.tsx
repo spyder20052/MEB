@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "@phosphor-icons/react";
 
 const impacts = [
-  { value: "500", suffix: "+", label: "ENTREPRISES ACCOMPAGNÉES", type: "dark" },
+  { value: "10", suffix: "+", label: "ENTREPRISES ACCOMPAGNÉES", type: "dark" },
   { value: "85", suffix: "%", label: "TAUX DE SURVIE À 3 ANS", type: "green" },
-  { value: "3", suffix: "M", label: "FCFA LEVÉS PAR NOS MEMBRES", type: "dark" },
-  { value: "40", suffix: "+", label: "EXPERTS ET MENTORS ACTIFS", type: "white" },
+  { value: "0", suffix: "M", label: "FCFA LEVÉS PAR NOS MEMBRES", type: "dark" },
+  { value: "20", suffix: "+", label: "PARTENAIRES ACTIFS", type: "white" },
 ];
 
 export const ImpactCounter = () => {
@@ -89,7 +89,7 @@ export const ImpactCounter = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-100px" }}
                     transition={{ duration: 0.5, delay: idx * 0.15 }}
-                    className={`${bgClass} p-8 lg:p-10 min-h-[250px] md:min-h-[280px] rounded-[1.5rem] md:rounded-[2rem] flex flex-col justify-between relative overflow-hidden group cursor-pointer transition-all duration-500`}
+                    className={`${bgClass} p-8 lg:p-10 min-h-[250px] md:min-h-[280px] rounded-[1.5rem] md:rounded-[2rem] flex flex-col justify-between relative overflow-hidden group cursor-pointer transition-colors duration-500`}
                   >
                     {/* Interactive Backgrounds */}
                     {isGreen && (
