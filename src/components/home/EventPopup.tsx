@@ -37,7 +37,9 @@ export function EventPopup() {
         desc: e.desc,
         tag: e.tag,
         seats: e.seats,
-        templateStyle: e.templateStyle || (["01", "02", "03", "04"].includes(e.num) ? e.num as "01" | "02" | "03" | "04" : "01"),
+        // Le popup ne gère que les 4 styles colorés : le template 05 (photo) y retombe sur le 01.
+        templateStyle: ((e.templateStyle === "05" ? "01" : e.templateStyle)
+          || (["01", "02", "03", "04"].includes(e.num) ? e.num : "01")) as "01" | "02" | "03" | "04",
       }))
       .filter((e) => e.date > now);
 

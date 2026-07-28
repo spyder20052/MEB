@@ -16,7 +16,9 @@ import {
   EyeSlash,
   ArrowsClockwise,
   ArrowDownLeft,
-  Lock
+  Lock,
+  Camera,
+  UploadSimple
 } from "@phosphor-icons/react";
 import {
   getEvents,
@@ -70,16 +72,21 @@ export default function DashboardPage() {
   const [newEvent, setNewEvent] = useState({
     title: "",
     tag: "",
-    templateStyle: "01" as "01" | "02" | "03" | "04",
+    templateStyle: "01" as "01" | "02" | "03" | "04" | "05",
     dateStr: "",
     time: "",
     seats: 15,
     venue: "Ciné Concorde, Cotonou",
     desc: "",
+    photos: [] as string[], // Photos choisies dès la création (template 05)
   });
 
   // Feedback Notification state
   const [notification, setNotification] = useState<string | null>(null);
+
+  // Upload de photos récap : num de l'événement en cours d'envoi / survolé en glisser-déposer
+  const [uploadingEvent, setUploadingEvent] = useState<string | null>(null);
+  const [dragOverEvent, setDragOverEvent] = useState<string | null>(null);
 
   useEffect(() => {
     // Load all settings on mount
@@ -87,6 +94,8 @@ export default function DashboardPage() {
     setEvents(getEvents());
     setProjects(getProjects());
 
+    // Réinitialisation du code d'accès sur "1234" au chargement
+    saveAdminCode("1234");
     const code = getAdminCode();
     setAdminCode(code);
     setCodeEditValue(code);
@@ -104,7 +113,7 @@ export default function DashboardPage() {
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputCode === adminCode) {
+    if (inputCode.trim() === adminCode.trim()) {
       setIsAuthenticated(true);
       setAuthError(false);
       sessionStorage.setItem("meb_admin_logged_in", "true");
@@ -155,6 +164,111 @@ export default function DashboardPage() {
     saveEvents(updated);
   };
 
+  // Envoie les photos vers /api/upload puis rattache les chemins retournés à l'événement.
+  const handleUploadPhotos = async (index: number, fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+
+    const targetNum = events[index].num;
+    setUploadingEvent(targetNum);
+
+    try {
+      const body = new FormData();
+      Array.from(fileList).forEach((file) => body.append("files", file));
+
+      const res = await fetch("/api/upload", { method: "POST", body });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "L'envoi des photos a échoué.");
+        return;
+      }
+
+      // On relit l'index courant : la liste a pu changer pendant l'envoi.
+      const current = events.findIndex((e) => e.num === targetNum);
+      if (current === -1) return;
+
+      const existing = events[current].recapPhotos || [];
+      handleEventChange(current, "recapPhotos", [...existing, ...data.paths]);
+
+      if (data.errors?.length) {
+        alert(`Certaines photos ont été refusées :\n${data.errors.join("\n")}`);
+      }
+      triggerNotification(`${data.paths.length} photo(s) ajoutée(s)`);
+    } catch {
+      alert("L'envoi des photos a échoué. Vérifie ta connexion.");
+    } finally {
+      setUploadingEvent(null);
+    }
+  };
+
+  // Upload des photos du formulaire de création (l'événement n'existe pas encore).
+  const handleUploadNewEventPhotos = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    setUploadingEvent("__new__");
+
+    try {
+      const body = new FormData();
+      Array.from(fileList).forEach((file) => body.append("files", file));
+
+      const res = await fetch("/api/upload", { method: "POST", body });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "L'envoi des photos a échoué.");
+        return;
+      }
+
+      setNewEvent((prev) => ({ ...prev, photos: [...prev.photos, ...data.paths] }));
+
+      if (data.errors?.length) {
+        alert(`Certaines photos ont été refusées :\n${data.errors.join("\n")}`);
+      }
+      triggerNotification(`${data.paths.length} photo(s) ajoutée(s)`);
+    } catch {
+      alert("L'envoi des photos a échoué. Vérifie ta connexion.");
+    } finally {
+      setUploadingEvent(null);
+    }
+  };
+
+  // Remplace la photo de carte (template 05) d'un événement déjà créé.
+  const handleUploadCardPhoto = async (index: number, fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+
+    const targetNum = events[index].num;
+    setUploadingEvent(`card-${targetNum}`);
+
+    try {
+      const body = new FormData();
+      body.append("files", fileList[0]);
+
+      const res = await fetch("/api/upload", { method: "POST", body });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "L'envoi de la photo a échoué.");
+        return;
+      }
+
+      const current = events.findIndex((e) => e.num === targetNum);
+      if (current === -1) return;
+
+      handleEventChange(current, "cardPhoto", data.paths[0]);
+      triggerNotification("Photo de la carte mise à jour");
+    } catch {
+      alert("L'envoi de la photo a échoué. Vérifie ta connexion.");
+    } finally {
+      setUploadingEvent(null);
+    }
+  };
+
+  const handleRemovePhoto = (index: number, photoIndex: number) => {
+    const photos = [...(events[index].recapPhotos || [])];
+    photos.splice(photoIndex, 1);
+    handleEventChange(index, "recapPhotos", photos);
+    triggerNotification("Photo retirée");
+  };
+
   const handleToggleEventHidden = (index: number) => {
     const updated = [...events];
     const isHidden = !updated[index].isHidden;
@@ -178,6 +292,10 @@ export default function DashboardPage() {
       alert("Veuillez remplir tous les champs obligatoires de l'événement.");
       return;
     }
+    if (newEvent.templateStyle === "05" && newEvent.photos.length === 0) {
+      alert("Le Template 05 affiche une photo plein cadre : choisis au moins une image.");
+      return;
+    }
 
     const created: EventItem = {
       num: Date.now().toString(),
@@ -192,6 +310,7 @@ export default function DashboardPage() {
       desc: newEvent.desc,
       dateRaw: new Date().toISOString(),
       isHidden: false,
+      cardPhoto: newEvent.photos[0],
     };
 
     const updated = [...events, created];
@@ -207,6 +326,7 @@ export default function DashboardPage() {
       seats: 15,
       venue: "Ciné Concorde, Cotonou",
       desc: "",
+      photos: [],
     });
 
     triggerNotification(`L'événement "${created.title}" a été ajouté.`);
@@ -372,15 +492,25 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] text-[#060D03] pt-44 pb-20 relative">
+    <div className="min-h-screen bg-[#F5F5F5] text-[#060D03] pt-12 pb-20 relative">
       <div className="max-w-[1240px] mx-auto px-5 sm:px-8 relative z-10">
         
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#060D03]/10 pb-8 mb-10">
           <div>
+            <Link href="/" className="inline-block group mb-2" aria-label="Retour à l'accueil MEB">
+              <Image
+                src="/images/logo.png"
+                alt="MEB — Maison de l'Entrepreneur du Bénin"
+                width={144}
+                height={144}
+                className="w-20 h-20 transform group-hover:scale-105 transition-transform duration-500"
+                priority
+              />
+            </Link>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-[#060D03]/40 hover:text-[#060D03] transition-colors text-xs font-mono uppercase tracking-widest mb-3"
+              className="flex items-center gap-2 text-[#060D03]/40 hover:text-[#060D03] transition-colors text-xs font-mono uppercase tracking-widest mb-3"
             >
               <ArrowLeft size={12} weight="bold" />
               <span>Retour au site</span>
@@ -563,6 +693,7 @@ export default function DashboardPage() {
                         <option value="02">Template 02 (Blanc Biseauté Petits-Déj)</option>
                         <option value="03">Template 03 (Vert Mastermind)</option>
                         <option value="04">Template 04 (Jaune Afterwork)</option>
+                        <option value="05">Template 05 (Photo plein cadre)</option>
                       </select>
                     </div>
                   </div>
@@ -631,6 +762,89 @@ export default function DashboardPage() {
                           className="w-full px-3 py-2 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none resize-none text-[#060D03]"
                         />
                       </div>
+
+                      {/* Photo de la carte — uniquement pour le Template 05 */}
+                      {newEvent.templateStyle === "05" && (
+                        <div className="sm:col-span-2">
+                          <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
+                            Photo de la carte *
+                          </label>
+
+                          <label
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              setDragOverEvent("__new__");
+                            }}
+                            onDragLeave={() => setDragOverEvent(null)}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              setDragOverEvent(null);
+                              handleUploadNewEventPhotos(e.dataTransfer.files);
+                            }}
+                            className={`flex flex-col items-center justify-center gap-2 w-full py-7 px-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all ${
+                              dragOverEvent === "__new__"
+                                ? "border-[#00B140] bg-[#E8F5EE]"
+                                : "border-[#060D03]/15 bg-[#F5F5F5] hover:border-[#00B140] hover:bg-[#E8F5EE]/50"
+                            } ${uploadingEvent === "__new__" ? "opacity-60 pointer-events-none" : ""}`}
+                          >
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,image/avif"
+                              multiple
+                              className="sr-only"
+                              onChange={(e) => {
+                                handleUploadNewEventPhotos(e.target.files);
+                                e.target.value = "";
+                              }}
+                            />
+                            {uploadingEvent === "__new__" ? (
+                              <>
+                                <ArrowsClockwise size={20} weight="bold" className="text-[#00B140] animate-spin" />
+                                <span className="font-heading font-bold text-[10px] uppercase tracking-widest text-[#00B140]">
+                                  Envoi en cours...
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <UploadSimple size={20} weight="bold" className="text-[#00B140]" />
+                                <span className="font-heading font-bold text-[10px] uppercase tracking-widest text-[#060D03]">
+                                  Choisir la photo
+                                </span>
+                                <span className="font-body text-[10px] text-[#060D03]/50 text-center">
+                                  ou glisse-dépose ton image ici — JPG, PNG ou WebP, 5 Mo max
+                                </span>
+                              </>
+                            )}
+                          </label>
+
+                          {newEvent.photos.length > 0 && (
+                            <div className="flex flex-wrap gap-3 mt-3">
+                              {newEvent.photos.map((src, i) => (
+                                <div
+                                  key={`${src}-${i}`}
+                                  className="relative w-24 h-24 rounded-xl overflow-hidden border border-[#060D03]/10 bg-[#F5F5F5] group"
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={src} alt={`Photo ${i + 1} du nouvel événement`} className="w-full h-full object-cover" />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setNewEvent({
+                                        ...newEvent,
+                                        photos: newEvent.photos.filter((_, j) => j !== i),
+                                      })
+                                    }
+                                    aria-label={`Retirer la photo ${i + 1}`}
+                                    className="absolute top-1 right-1 w-6 h-6 rounded-lg bg-[#E63946] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[#00B140] transition-opacity cursor-pointer"
+                                  >
+                                    <Trash size={12} weight="bold" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <button
@@ -778,6 +992,49 @@ export default function DashboardPage() {
                                 </div>
                               </div>
                             )}
+
+                            {/* CARD 05 - Photo plein cadre */}
+                            {style === "05" && (
+                              <div className="w-full bg-[#0D1B2A] rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[220px] relative overflow-hidden text-white border border-transparent shadow-lg">
+                                {(event.cardPhoto || (event.recapPhotos || [])[0]) ? (
+                                  <div className="absolute inset-0 z-0">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={event.cardPhoto || (event.recapPhotos || [])[0]}
+                                      alt=""
+                                      aria-hidden="true"
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/35" />
+                                  </div>
+                                ) : (
+                                  <div className="absolute inset-0 z-0 flex items-center justify-center">
+                                    <span className="font-mono text-[9px] uppercase tracking-widest text-white/40 text-center px-6">
+                                      Ajoute une photo ci-contre
+                                    </span>
+                                  </div>
+                                )}
+
+                                <div className="relative z-10 flex justify-between items-start mb-6">
+                                  <span className="font-mono text-sm text-white font-bold">{isCustom ? "#" : "05"}</span>
+                                  <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-white border border-white/30 px-2.5 py-0.5 rounded-full bg-black/40">
+                                    {event.tag}
+                                  </span>
+                                </div>
+                                <div className="relative z-10">
+                                  <h3 className="font-heading font-bold text-lg uppercase leading-tight text-white mb-2 line-clamp-2">
+                                    {event.title}
+                                  </h3>
+                                  <p className="font-body text-xs text-white/90 leading-relaxed mb-4 line-clamp-3">
+                                    {event.desc}
+                                  </p>
+                                  <div className="border-t border-white/25 pt-3 flex items-center justify-between font-mono text-[9px] text-white/80">
+                                    <span className="truncate max-w-[150px]">{event.dateStr}</span>
+                                    <span className="text-white font-bold">{event.seats} PLACES RESTANTES</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -882,22 +1139,64 @@ export default function DashboardPage() {
                               />
                             </div>
 
-                            {isCustom && (
-                              <div>
+                            <div>
+                              <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
+                                Modèle de Style
+                              </label>
+                              <select
+                                value={event.templateStyle || (isCustom ? "01" : (event.num as string))}
+                                disabled={event.isHidden}
+                                onChange={(e) => handleEventChange(idx, "templateStyle", e.target.value)}
+                                className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none text-[#060D03]"
+                              >
+                                <option value="01">Template 01 (Rouge)</option>
+                                <option value="02">Template 02 (Blanc Biseauté)</option>
+                                <option value="03">Template 03 (Vert)</option>
+                                <option value="04">Template 04 (Jaune)</option>
+                                <option value="05">Template 05 (Photo plein cadre)</option>
+                              </select>
+                            </div>
+
+                            {/* Photo de la carte — visible seulement en Template 05 */}
+                            {(event.templateStyle || (isCustom ? "01" : event.num)) === "05" && (
+                              <div className="sm:col-span-2">
                                 <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
-                                  Modèle de Style
+                                  Photo de la carte
                                 </label>
-                                <select
-                                  value={event.templateStyle || "01"}
-                                  disabled={event.isHidden}
-                                  onChange={(e) => handleEventChange(idx, "templateStyle", e.target.value)}
-                                  className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none text-[#060D03]"
-                                >
-                                  <option value="01">Template 01 (Rouge)</option>
-                                  <option value="02">Template 02 (Blanc Biseauté)</option>
-                                  <option value="03">Template 03 (Vert)</option>
-                                  <option value="04">Template 04 (Jaune)</option>
-                                </select>
+                                <div className="flex items-center gap-3">
+                                  <label
+                                    className={`flex-1 flex items-center justify-center gap-2 h-10 px-3 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
+                                      uploadingEvent === `card-${event.num}`
+                                        ? "opacity-60 pointer-events-none border-[#00B140]"
+                                        : "border-[#060D03]/15 bg-[#F5F5F5] hover:border-[#00B140] hover:bg-[#E8F5EE]/50"
+                                    }`}
+                                  >
+                                    <input
+                                      type="file"
+                                      accept="image/jpeg,image/png,image/webp,image/avif"
+                                      className="sr-only"
+                                      onChange={(e) => {
+                                        handleUploadCardPhoto(idx, e.target.files);
+                                        e.target.value = "";
+                                      }}
+                                    />
+                                    {uploadingEvent === `card-${event.num}` ? (
+                                      <ArrowsClockwise size={14} weight="bold" className="text-[#00B140] animate-spin" />
+                                    ) : (
+                                      <UploadSimple size={14} weight="bold" className="text-[#00B140]" />
+                                    )}
+                                    <span className="font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]">
+                                      {event.cardPhoto ? "Remplacer la photo" : "Choisir la photo"}
+                                    </span>
+                                  </label>
+
+                                  {event.cardPhoto && (
+                                    <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-[#060D03]/10 shrink-0">
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img src={event.cardPhoto} alt="" aria-hidden="true" className="w-full h-full object-cover" />
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>
@@ -913,6 +1212,156 @@ export default function DashboardPage() {
                               rows={2}
                               className="w-full px-3 py-2 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none transition-all disabled:opacity-40 resize-none text-[#060D03]"
                             />
+                          </div>
+
+                          {/* --- BLOC RÉCAP APRÈS-ÉVÉNEMENT --- */}
+                          <div className="mt-6 pt-5 border-t border-dashed border-[#060D03]/15 space-y-4">
+                            <div className="flex items-center justify-between gap-3 flex-wrap">
+                              <div>
+                                <h5 className="font-heading font-bold text-sm text-[#060D03] uppercase flex items-center gap-2">
+                                  <Camera size={14} weight="bold" className="text-[#00B140]" />
+                                  Récap de l&apos;édition passée
+                                </h5>
+                                <p className="font-body text-[10px] text-[#060D03]/50 mt-0.5">
+                                  Photos et bilan de l&apos;événement une fois terminé.
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleEventChange(idx, "recapPublished", !event.recapPublished)}
+                                className={`px-3 py-1.5 rounded-lg border font-mono text-[9px] uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+                                  event.recapPublished
+                                    ? "bg-[#00B140]/10 border-[#00B140]/20 text-[#00B140] hover:bg-[#00B140]/20"
+                                    : "bg-[#060D03]/5 border-[#060D03]/15 text-[#060D03]/60 hover:bg-[#060D03]/10"
+                                }`}
+                              >
+                                {event.recapPublished ? <Check size={12} weight="bold" /> : <EyeSlash size={12} weight="bold" />}
+                                <span>{event.recapPublished ? "Récap publié" : "Récap non publié"}</span>
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
+                                  Date de l&apos;édition passée
+                                </label>
+                                <input
+                                  type="text"
+                                  value={event.recapDateStr || ""}
+                                  onChange={(e) => handleEventChange(idx, "recapDateStr", e.target.value)}
+                                  placeholder="ex: Jeudi 5 Mars 2026"
+                                  className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none transition-all text-[#060D03]"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
+                                  Participants présents
+                                </label>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  value={event.recapAttendees ?? ""}
+                                  onChange={(e) =>
+                                    handleEventChange(idx, "recapAttendees", parseInt(e.target.value) || 0)
+                                  }
+                                  placeholder="ex: 42"
+                                  className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none transition-all text-[#060D03]"
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
+                                Résumé / Rapport d&apos;activité
+                              </label>
+                              <textarea
+                                value={event.recapText || ""}
+                                onChange={(e) => handleEventChange(idx, "recapText", e.target.value)}
+                                rows={3}
+                                placeholder="Ce qui s'est passé, les intervenants, les retombées concrètes pour les participants..."
+                                className="w-full px-3 py-2 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none transition-all resize-none text-[#060D03]"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
+                                Galerie photos
+                              </label>
+
+                              {/* Zone d'upload : clic ou glisser-déposer */}
+                              <label
+                                onDragOver={(e) => {
+                                  e.preventDefault();
+                                  setDragOverEvent(event.num);
+                                }}
+                                onDragLeave={() => setDragOverEvent(null)}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  setDragOverEvent(null);
+                                  handleUploadPhotos(idx, e.dataTransfer.files);
+                                }}
+                                className={`flex flex-col items-center justify-center gap-2 w-full py-7 px-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all ${
+                                  dragOverEvent === event.num
+                                    ? "border-[#00B140] bg-[#E8F5EE]"
+                                    : "border-[#060D03]/15 bg-[#F5F5F5] hover:border-[#00B140] hover:bg-[#E8F5EE]/50"
+                                } ${uploadingEvent === event.num ? "opacity-60 pointer-events-none" : ""}`}
+                              >
+                                <input
+                                  type="file"
+                                  accept="image/jpeg,image/png,image/webp,image/avif"
+                                  multiple
+                                  className="sr-only"
+                                  onChange={(e) => {
+                                    handleUploadPhotos(idx, e.target.files);
+                                    e.target.value = "";
+                                  }}
+                                />
+                                {uploadingEvent === event.num ? (
+                                  <>
+                                    <ArrowsClockwise size={20} weight="bold" className="text-[#00B140] animate-spin" />
+                                    <span className="font-heading font-bold text-[10px] uppercase tracking-widest text-[#00B140]">
+                                      Envoi en cours...
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <UploadSimple size={20} weight="bold" className="text-[#00B140]" />
+                                    <span className="font-heading font-bold text-[10px] uppercase tracking-widest text-[#060D03]">
+                                      Choisir des photos
+                                    </span>
+                                    <span className="font-body text-[10px] text-[#060D03]/50 text-center">
+                                      ou glisse-dépose tes images ici — JPG, PNG ou WebP, 5 Mo max
+                                    </span>
+                                  </>
+                                )}
+                              </label>
+                            </div>
+
+                            {(event.recapPhotos || []).length > 0 && (
+                              <div className="flex flex-wrap gap-3">
+                                {(event.recapPhotos || []).map((src, i) => (
+                                  <div
+                                    key={`${src}-${i}`}
+                                    className="relative w-24 h-24 rounded-xl overflow-hidden border border-[#060D03]/10 bg-[#F5F5F5] group"
+                                  >
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={src}
+                                      alt={`Aperçu photo ${i + 1} de ${event.title}`}
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemovePhoto(idx, i)}
+                                      aria-label={`Retirer la photo ${i + 1}`}
+                                      className="absolute top-1 right-1 w-6 h-6 rounded-lg bg-[#E63946] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[#00B140] transition-opacity cursor-pointer"
+                                    >
+                                      <Trash size={12} weight="bold" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

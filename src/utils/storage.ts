@@ -13,7 +13,17 @@ export interface EventItem {
   seats: number;
   dateRaw: string; // ISO string representing the next instance date
   isHidden?: boolean;
-  templateStyle?: "01" | "02" | "03" | "04"; // Card style preset (Red, White, Green, Yellow)
+  templateStyle?: "01" | "02" | "03" | "04" | "05"; // Card style preset (Red, White, Green, Yellow, Photo)
+  cardPhoto?: string; // Photo de la carte (template 05), choisie dès la création de l'événement
+
+  // --- Bloc "Après-événement" (récapitulatif) ---
+  // Renseigné une fois l'événement passé, pour prouver l'activité réelle de la MEB
+  // et donner envie de s'inscrire aux prochaines éditions.
+  recapPublished?: boolean; // Si true, l'édition apparaît dans "Ils y étaient déjà"
+  recapText?: string; // Résumé / rapport d'activité court
+  recapPhotos?: string[]; // Chemins des photos (ex: "/images/events/jpo-01.jpg")
+  recapAttendees?: number; // Nombre réel de participants
+  recapDateStr?: string; // Date de l'édition passée (ex: "Jeudi 5 Mars 2026")
 }
 
 export interface ProjectItem {
@@ -162,6 +172,8 @@ export const getEvents = (): EventItem[] => {
 export const saveEvents = (events: EventItem[]) => {
   if (!isBrowser()) return;
   localStorage.setItem(KEYS.events, JSON.stringify(events));
+  // Prévient les pages ouvertes (ex: /evenements) pour un rafraîchissement immédiat.
+  window.dispatchEvent(new Event("meb_settings_updated"));
 };
 
 export const resetEvents = (): EventItem[] => {

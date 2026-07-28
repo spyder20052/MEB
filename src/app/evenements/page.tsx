@@ -29,6 +29,16 @@ export default function EvenementsPage() {
       setIsPageHidden(true);
     }
     setEventList(getEvents());
+
+    // Rafraîchit la page dès qu'un événement est modifié depuis le dashboard,
+    // que ce soit dans cet onglet ("meb_settings_updated") ou dans un autre ("storage").
+    const refresh = () => setEventList(getEvents());
+    window.addEventListener("meb_settings_updated", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("meb_settings_updated", refresh);
+      window.removeEventListener("storage", refresh);
+    };
   }, []);
 
   const e1 = eventList.find(e => e.num === "01");
@@ -38,8 +48,60 @@ export default function EvenementsPage() {
 
   const otherEvents = eventList.filter(e => !["01", "02", "03", "04"].includes(e.num));
 
+  // Éditions passées dont le récapitulatif a été publié depuis le dashboard
+  const recapEvents = eventList.filter(e => e.recapPublished && !e.isHidden);
+
   const renderEventCard = (event: EventItem) => {
     const style = event.templateStyle || "01";
+
+    // Template 05 : la photo occupe toute la carte, le texte se pose par-dessus.
+    // Sans photo, on retombe sur un fond Navy pour que la carte reste lisible.
+    if (style === "05") {
+      const photo = event.cardPhoto || (event.recapPhotos || [])[0];
+      return (
+        <motion.div
+          key={event.num}
+          onClick={() => openModal(event)}
+          whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(0, 0, 0, 0.3)" }}
+          whileTap={{ scale: 0.95, y: -2 }}
+          className="group border border-transparent bg-[#0D1B2A] rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[220px] cursor-pointer relative overflow-hidden text-white"
+        >
+          {photo && (
+            <div className="absolute inset-0 z-0">
+              <Image
+                src={photo}
+                alt=""
+                aria-hidden="true"
+                fill
+                sizes="(max-width: 768px) 100vw, 400px"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              {/* Voile sombre : garantit le contraste AA du texte blanc sur n'importe quelle photo. */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/35" />
+            </div>
+          )}
+
+          <div className="relative z-10 flex justify-between items-start mb-6">
+            <span className="font-mono text-sm text-white font-bold">#</span>
+            <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-white border border-white/30 px-2.5 py-0.5 rounded-full bg-black/40 backdrop-blur-sm">
+              {event.tag}
+            </span>
+          </div>
+          <div className="relative z-10">
+            <h3 className="font-heading font-bold text-lg uppercase leading-tight text-white mb-2 line-clamp-2">
+              {event.title}
+            </h3>
+            <p className="font-body text-xs text-white/90 leading-relaxed mb-4 line-clamp-3">
+              {event.desc}
+            </p>
+            <div className="border-t border-white/25 pt-3 flex items-center justify-between font-mono text-[9px] text-white/80">
+              <span>{event.dateStr}</span>
+              <span className="text-white font-bold">{event.seats} PLACES RESTANTES</span>
+            </div>
+          </div>
+        </motion.div>
+      );
+    }
     
     if (style === "01") {
       return (
@@ -50,13 +112,13 @@ export default function EvenementsPage() {
           whileTap={{ scale: 0.95, y: -2 }}
           className="group border border-transparent bg-[#E63946] hover:bg-[#E63946]/95 rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[220px] cursor-pointer transition-colors duration-300 relative overflow-hidden text-white"
         >
-          <div className="flex justify-between items-start mb-6">
+          <div className="relative z-10 flex justify-between items-start mb-6">
             <span className="font-mono text-sm text-white font-bold">#</span>
             <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-white/95 border border-white/20 px-2.5 py-0.5 rounded-full bg-white/10">
               {event.tag}
             </span>
           </div>
-          <div>
+          <div className="relative z-10">
             <h3 className="font-heading font-bold text-lg uppercase leading-tight text-white mb-2 line-clamp-2">
               {event.title}
             </h3>
@@ -132,13 +194,13 @@ export default function EvenementsPage() {
           whileTap={{ scale: 0.95, y: -2 }}
           className="group border border-transparent bg-[#00B140] hover:bg-[#00D94F] rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[220px] cursor-pointer transition-colors duration-300 relative overflow-hidden text-white"
         >
-          <div className="flex justify-between items-start mb-6">
+          <div className="relative z-10 flex justify-between items-start mb-6">
             <span className="font-mono text-sm text-white font-bold">#</span>
             <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-white/95 border border-white/20 px-2.5 py-0.5 rounded-full bg-white/10">
               {event.tag}
             </span>
           </div>
-          <div>
+          <div className="relative z-10">
             <h3 className="font-heading font-bold text-lg uppercase leading-tight text-white mb-2 line-clamp-2">
               {event.title}
             </h3>
@@ -163,13 +225,13 @@ export default function EvenementsPage() {
           whileTap={{ scale: 0.95, y: -2 }}
           className="group border border-transparent bg-[#F5C518] hover:bg-[#ffda3c] rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[220px] cursor-pointer transition-colors duration-300 relative overflow-hidden text-[#060D03]"
         >
-          <div className="flex justify-between items-start mb-6">
+          <div className="relative z-10 flex justify-between items-start mb-6">
             <span className="font-mono text-sm text-[#060D03] font-bold">#</span>
             <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-[#060D03]/75 border border-[#060D03]/15 px-2.5 py-0.5 rounded-full bg-black/5">
               {event.tag}
             </span>
           </div>
-          <div>
+          <div className="relative z-10">
             <h3 className="font-heading font-bold text-lg uppercase leading-tight text-[#060D03] mb-2 line-clamp-2">
               {event.title}
             </h3>
@@ -429,20 +491,21 @@ export default function EvenementsPage() {
             {/* COLUMN 2: Card 01 & Card 03 */}
             <div className="lg:col-span-3 flex flex-col gap-6">
               {/* Card 01 - JPO */}
-              {e1 && !e1.isHidden && (
+              {e1 && !e1.isHidden && e1.templateStyle === "05" && renderEventCard(e1)}
+              {e1 && !e1.isHidden && e1.templateStyle !== "05" && (
                 <motion.div
                   onClick={() => openModal(e1)}
                   whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(230, 57, 70, 0.25)" }}
                   whileTap={{ scale: 0.95, y: -2 }}
                   className="group border border-transparent bg-[#E63946] hover:bg-[#E63946]/95 rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[200px] cursor-pointer transition-colors duration-300 relative overflow-hidden text-white"
                 >
-                  <div className="flex justify-between items-start mb-6">
+                  <div className="relative z-10 flex justify-between items-start mb-6">
                     <span className="font-mono text-sm text-white font-bold">01</span>
                     <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-white/95 border border-white/20 px-2.5 py-0.5 rounded-full bg-white/10">
                       {e1.tag}
                     </span>
                   </div>
-                  <div>
+                  <div className="relative z-10">
                     <h3 className="font-heading font-bold text-lg uppercase leading-tight text-white mb-2">
                       {e1.title}
                     </h3>
@@ -458,20 +521,21 @@ export default function EvenementsPage() {
               )}
 
               {/* Card 03 - Mastermind */}
-              {e3 && !e3.isHidden && (
+              {e3 && !e3.isHidden && e3.templateStyle === "05" && renderEventCard(e3)}
+              {e3 && !e3.isHidden && e3.templateStyle !== "05" && (
                 <motion.div
                   onClick={() => openModal(e3)}
                   whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(0, 177, 64, 0.25)" }}
                   whileTap={{ scale: 0.95, y: -2 }}
                   className="group border border-transparent bg-[#00B140] hover:bg-[#00D94F] rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[200px] cursor-pointer transition-colors duration-300 relative overflow-hidden text-white"
                 >
-                  <div className="flex justify-between items-start mb-6">
+                  <div className="relative z-10 flex justify-between items-start mb-6">
                     <span className="font-mono text-sm text-white font-bold">03</span>
                     <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-white/95 border border-white/20 px-2.5 py-0.5 rounded-full bg-white/10">
                       {e3.tag}
                     </span>
                   </div>
-                  <div>
+                  <div className="relative z-10">
                     <h3 className="font-heading font-bold text-lg uppercase leading-tight text-white mb-2">
                       {e3.title}
                     </h3>
@@ -489,7 +553,8 @@ export default function EvenementsPage() {
 
             {/* COLUMN 3: Card 02 (White with diagonal cut) & Overlapping button */}
             <div className="lg:col-span-3 flex flex-col gap-6 justify-between h-full relative">
-              {e2 && !e2.isHidden && (
+              {e2 && !e2.isHidden && e2.templateStyle === "05" && renderEventCard(e2)}
+              {e2 && !e2.isHidden && e2.templateStyle !== "05" && (
                 <motion.div 
                   whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(255, 255, 255, 0.08)" }}
                   whileTap={{ scale: 0.95, y: -2 }}
@@ -545,20 +610,21 @@ export default function EvenementsPage() {
 
             {/* COLUMN 4: Card 04 (Spans full height of others) */}
             <div className="lg:col-span-3 flex h-full">
-              {e4 && !e4.isHidden && (
+              {e4 && !e4.isHidden && e4.templateStyle === "05" && renderEventCard(e4)}
+              {e4 && !e4.isHidden && e4.templateStyle !== "05" && (
                 <motion.div
                   onClick={() => openModal(e4)}
                   whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(245, 197, 24, 0.25)" }}
                   whileTap={{ scale: 0.95, y: -2 }}
                   className="group border border-transparent bg-[#F5C518] hover:bg-[#ffda3c] rounded-[1.5rem] p-6 flex flex-col justify-between w-full min-h-[300px] lg:min-h-full cursor-pointer transition-colors duration-300 relative overflow-hidden text-[#060D03]"
                 >
-                  <div className="flex justify-between items-start mb-6">
+                  <div className="relative z-10 flex justify-between items-start mb-6">
                     <span className="font-mono text-sm text-[#060D03] font-bold">04</span>
                     <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-[#060D03]/75 border border-[#060D03]/15 px-2.5 py-0.5 rounded-full bg-black/5">
                       {e4.tag}
                     </span>
                   </div>
-                  <div>
+                  <div className="relative z-10">
                     <h3 className="font-heading font-bold text-lg uppercase leading-tight text-[#060D03] mb-2">
                       {e4.title}
                     </h3>
@@ -588,6 +654,98 @@ export default function EvenementsPage() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
               {otherEvents.map((event) => renderEventCard(event))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── ILS Y ÉTAIENT DÉJÀ (RÉCAPS D'ÉDITIONS PASSÉES) ───────────────────────── */}
+      {recapEvents.length > 0 && (
+        <section className="bg-white text-[#060D03] py-24 relative z-20 border-t border-[#060D03]/10">
+          <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
+            <h2 className="font-heading font-light text-xl sm:text-2xl uppercase tracking-tight mb-3">
+              <span className="font-mono text-lg mr-3 text-[#00B140]">(04)</span>
+              ILS Y ÉTAIENT DÉJÀ
+            </h2>
+            <p className="font-body text-sm text-[#060D03]/60 mb-12 max-w-xl">
+              Retour en images sur nos dernières éditions. Voilà ce qui t&apos;attend quand tu nous rejoins.
+            </p>
+
+            <div className="space-y-16">
+              {recapEvents.map((event) => (
+                <motion.article
+                  key={`recap-${event.num}`}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-80px" }}
+                  transition={{ duration: 0.5 }}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-12 border-t border-[#060D03]/10 first:border-t-0 first:pt-0"
+                >
+                  {/* Bilan textuel */}
+                  <div className="lg:col-span-4">
+                    <span className="inline-block font-mono text-[10px] font-bold uppercase tracking-widest text-[#00B140] bg-[#E8F5EE] px-3 py-1 rounded-full mb-4">
+                      Édition passée
+                    </span>
+                    <h3 className="font-heading font-bold text-xl uppercase leading-tight mb-3">
+                      {event.title}
+                    </h3>
+
+                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[10px] uppercase tracking-wider text-[#060D03]/55 mb-5">
+                      {event.recapDateStr && (
+                        <span className="flex items-center gap-1.5">
+                          <Calendar size={13} weight="bold" className="text-[#00B140]" />
+                          {event.recapDateStr}
+                        </span>
+                      )}
+                      {event.venue && (
+                        <span className="flex items-center gap-1.5">
+                          <MapPin size={13} weight="bold" className="text-[#00B140]" />
+                          {event.venue}
+                        </span>
+                      )}
+                    </div>
+
+                    {typeof event.recapAttendees === "number" && event.recapAttendees > 0 && (
+                      <div className="mb-5 border-l-2 border-[#00B140] pl-4">
+                        <span className="block font-mono font-bold text-3xl text-[#00B140] leading-none">
+                          {event.recapAttendees}
+                        </span>
+                        <span className="font-body text-[11px] text-[#060D03]/55">
+                          participants présents
+                        </span>
+                      </div>
+                    )}
+
+                    {event.recapText && (
+                      <p className="font-body text-sm text-[#555555] leading-relaxed whitespace-pre-line">
+                        {event.recapText}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Galerie photos */}
+                  {(event.recapPhotos || []).length > 0 && (
+                    <div className="lg:col-span-8">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {(event.recapPhotos || []).map((src, i) => (
+                          <div
+                            key={i}
+                            className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#F5F5F5] border border-[#060D03]/8 group"
+                          >
+                            <Image
+                              src={src}
+                              alt={`${event.title} — photo ${i + 1} de l'édition ${event.recapDateStr || "passée"}`}
+                              fill
+                              sizes="(max-width: 768px) 50vw, (max-width: 1240px) 33vw, 300px"
+                              className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </motion.article>
+              ))}
             </div>
           </div>
         </section>

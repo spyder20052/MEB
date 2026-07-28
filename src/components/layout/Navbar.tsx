@@ -62,6 +62,9 @@ export const Navbar = () => {
     };
   }, []);
 
+  // Le dashboard est un espace d'administration : pas de navigation publique flottante.
+  if (pathname === "/dashboard") return null;
+
   return (
     <>
       <div className={`fixed top-0 left-0 right-0 z-50 flex justify-center px-4 sm:px-8 pointer-events-none transition-all duration-500 ${scrolled ? "pt-10" : "pt-2"}`}>
