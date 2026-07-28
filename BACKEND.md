@@ -14,7 +14,7 @@ Aucune donnée n'est persistée sur un serveur. Trois manques bloquent la mise e
 |---|--------|-------------------------|
 | 1 | **Aucune base de données** | Événements, projets, récaps et réglages vivent dans le `localStorage` du navigateur de l'admin. Un visiteur ne voit jamais ces modifications. |
 | 2 | **Upload sur disque local** | `/api/upload` écrit dans `public/images/events/`. Échoue sur Vercel (FS en lecture seule), effacé à chaque redéploiement ailleurs. |
-| 3 | **Aucun envoi d'e-mail** | Le formulaire de prise de RDV et l'inscription aux événements simulent l'envoi (`setTimeout`). Les demandes sont **perdues**. |
+| 3 | **Aucun envoi d'e-mail** | Les **trois** formulaires du site simulent l'envoi. Toutes les saisies des visiteurs sont **définitivement perdues** (détail en §6). |
 
 Stack cible, déjà prévue au CDC : **Supabase** (PostgreSQL + Storage) et **Resend** (e-mails).
 
@@ -166,7 +166,19 @@ Reçoit les inscriptions depuis la modale de `/evenements`.
 | `email` | text |
 | `created_at` | timestamptz |
 
-> À décider avec la MEB : faut-il décrémenter `events.seats` à chaque inscription ? Le frontend affiche « N PLACES RESTANTES » mais rien ne décompte aujourd'hui.
+> À décider avec la MEB : faut-il décrémenter `events.seats` à chaque inscription ? Le frontend affiche « N PLACES RESTANTES » mais rien ne décompte aujourd'hui. Voir §6.2.
+
+### Table `newsletter_subscribers` — à créer
+
+Alimentée par le pied de page et par la case à cocher du formulaire RDV.
+
+| Colonne | Type |
+|---|---|
+| `id` | uuid PK |
+| `email` | text unique |
+| `source` | text — `footer` / `rdv` |
+| `confirmed` | bool |
+| `created_at` | timestamptz |
 
 ### Synchronisation temps réel
 
@@ -228,30 +240,35 @@ Prévoir une compression et une génération de miniatures à l'upload — Supab
 
 ---
 
-## 6. E-mails — formulaire de contact / prise de RDV
+## 6. Formulaires et e-mails — LE MANQUE LE PLUS GRAVE
 
-> Point explicitement demandé par la MEB. **Aucun e-mail n'est envoyé aujourd'hui.**
+> Point explicitement demandé par la MEB.
+> **Aucun e-mail n'est envoyé. Aucune saisie n'est enregistrée. Tout est perdu.**
 
-### État actuel — les demandes sont perdues
+Le site compte **trois formulaires**. Les trois affichent un message de succès sans que personne ne reçoive quoi que ce soit. La conversion en prises de RDV étant l'objectif n°1 du cahier des charges, c'est le chantier prioritaire.
 
-[src/app/prendre-rdv/page.tsx](src/app/prendre-rdv/page.tsx) :
+| # | Formulaire | Emplacement | État |
+|---|---|---|---|
+| 1 | Prise de RDV | `/prendre-rdv` | `setTimeout(1500)` puis faux succès |
+| 2 | Inscription à un événement | modale sur `/evenements` | `setTimeout(1200)` puis faux succès |
+| 3 | Newsletter | pied de page, toutes les pages | champ décoratif, aucun code |
+
+---
+
+### 6.1 — Formulaire de prise de RDV
+
+Fichier : [src/app/prendre-rdv/page.tsx](src/app/prendre-rdv/page.tsx)
 
 ```ts
 const onSubmit = async (data: RdvFormData) => {
   setIsSubmitting(true);
   await new Promise((resolve) => setTimeout(resolve, 1500)); // ← simulation
   setIsSubmitting(false);
-  setSubmitSuccess(true); // ← message de succès mensonger
+  setSubmitSuccess(true); // ← succès mensonger
 };
 ```
 
-L'utilisateur voit « demande envoyée ». **Personne ne la reçoit.** C'est le manque le plus grave du projet : la conversion en prises de RDV est l'objectif n°1 du cahier des charges.
-
-Même situation pour l'inscription aux événements dans [src/app/evenements/page.tsx](src/app/evenements/page.tsx).
-
-### Champs du formulaire RDV
-
-Validation Zod déjà en place, à réutiliser telle quelle côté serveur :
+**Champs** — validation Zod déjà en place, à réutiliser telle quelle côté serveur :
 
 | Champ | Type | Obligatoire | Règle |
 |---|---|---|---|
@@ -262,34 +279,85 @@ Validation Zod déjà en place, à réutiliser telle quelle côté serveur :
 | `projectDescription` | string | non | |
 | `newsletter` | bool | — | consentement newsletter |
 
-### Champs du formulaire d'inscription événement
+**Route à créer : `POST /api/rdv`**
 
-`name`, `whatsapp`, `email` + le `num` de l'événement concerné.
-
-### À implémenter
-
-**Route `POST /api/contact`** (ou `/api/rdv`) :
-
-1. Revalider les données avec le **même schéma Zod** — ne jamais faire confiance au client.
+1. Revalider avec le **même schéma Zod** — ne jamais faire confiance au client.
 2. Enregistrer dans `rdv_requests`.
-3. Envoyer **deux e-mails** via Resend :
-   - **À la MEB** → `contact@entrepreneurbenin.pro` : tous les champs, avec le WhatsApp bien visible (c'est le canal de rappel annoncé à l'utilisateur).
-   - **À l'utilisateur**, si un e-mail a été fourni : accusé de réception, ton tutoiement conforme à la ligne éditoriale.
-4. Répondre `{ ok: true }` ou `{ error: "..." }`.
-5. Côté frontend, remplacer le `setTimeout` par l'appel réel, et **n'afficher le succès que si le serveur confirme**.
+3. Envoyer deux e-mails via Resend :
+   - **À la MEB** → `contact@entrepreneurbenin.pro`, avec le numéro WhatsApp bien visible : c'est le canal de rappel annoncé à l'utilisateur.
+   - **À l'utilisateur**, si un e-mail est fourni — accusé de réception, tutoiement conforme à la ligne éditoriale.
+4. Si `newsletter` est coché, inscrire l'adresse à la liste de diffusion.
+5. Répondre `{ ok: true }` ou `{ error: "..." }`.
 
-**Route `POST /api/event-registration`** : même principe, avec confirmation d'inscription à l'événement.
+---
 
-### Adresse de destination
+### 6.2 — Inscription à un événement
 
-`contact@entrepreneurbenin.pro`
+Fichier : [src/app/evenements/page.tsx](src/app/evenements/page.tsx) — modale ouverte au clic sur une carte.
 
-Déjà présente dans [src/app/prendre-rdv/page.tsx](src/app/prendre-rdv/page.tsx) et [src/components/home/ContactCTA.tsx](src/components/home/ContactCTA.tsx).
-**À confirmer avec la MEB** avant la mise en production, et à externaliser en variable d'environnement.
+```ts
+setIsSubmitting(true);
+setTimeout(() => {
+  setIsSubmitting(false);
+  setSubmitSuccess(true); // ← succès mensonger
+}, 1200);
+```
 
-### Anti-spam
+**Ce que voit l'utilisateur.** La modale affiche l'événement (titre, date, horaires, lieu), puis demande nom complet, WhatsApp et e-mail optionnel. Sous le bouton **« Confirmer l'inscription »** : *« Gratuit. Confirmation immédiate. »*
 
-Formulaires publics sans aucune protection. Prévoir au minimum une limitation de débit par IP, et un honeypot ou un captcha.
+Après validation, un message annonce :
+
+> « Un récapitulatif a été enregistré et nous te recontactons sous 24h par WhatsApp au [numéro] pour la confirmation finale. »
+
+**Trois promesses explicites, aucune tenue.** Rien n'est enregistré, aucune confirmation n'est envoyée, et personne à la MEB ne reçoit le numéro à rappeler. Un entrepreneur qui s'inscrit à un Mastermind se présentera à un événement dont la MEB ignore qu'il vient — ou, plus probablement, ne viendra jamais et gardera une mauvaise impression de la maison.
+
+**Champs**
+
+| Champ | Type | Obligatoire |
+|---|---|---|
+| `name` | string | oui |
+| `whatsapp` | string | oui |
+| `email` | string | non |
+| `eventNum` | string | oui — `num` de l'événement concerné |
+
+**Route à créer : `POST /api/event-registration`**
+
+1. Valider les champs, vérifier que l'événement existe et n'est pas masqué.
+2. Enregistrer dans `event_registrations`.
+3. Envoyer deux e-mails :
+   - **À la MEB** — nom de l'événement, date, coordonnées de l'inscrit, WhatsApp en évidence.
+   - **À l'inscrit**, si un e-mail est fourni — confirmation avec le rappel de la date, de l'heure et du lieu.
+4. Décider du sort de `events.seats` (voir ci-dessous).
+
+**Décisions à prendre avec la MEB :**
+
+- **Le compteur de places.** La carte affiche « N PLACES RESTANTES » mais rien ne décompte. Faut-il décrémenter à chaque inscription, et refuser les inscriptions à zéro place ? Attention à la concurrence : deux inscriptions simultanées sur la dernière place doivent être gérées côté base, pas côté application.
+- **La promesse « confirmation immédiate ».** Soit l'e-mail part instantanément et la promesse est tenue, soit le texte doit être revu. Ne pas laisser un message qui annonce plus que ce que le système fait.
+- **Le rappel WhatsApp sous 24h.** Annoncé à l'utilisateur. Prévoir au minimum une notification fiable côté MEB, et idéalement un suivi du statut de chaque inscription.
+
+---
+
+### 6.3 — Newsletter du pied de page
+
+Fichier : [src/components/layout/Footer.tsx](src/components/layout/Footer.tsx)
+
+Champ e-mail et bouton présents sur **toutes les pages du site**. Le bouton n'a **aucun gestionnaire d'événement** : rien ne se passe au clic, pas même un faux message de succès. Un visiteur qui saisit son adresse croit s'être abonné.
+
+**Route à créer : `POST /api/newsletter`** — valider l'adresse, enregistrer dans une table `newsletter_subscribers` (avec `created_at` et un statut de confirmation), envoyer un e-mail de bienvenue. Prévoir un lien de désinscription dans chaque envoi.
+
+À défaut d'implémentation immédiate, **retirer le champ** plutôt que de laisser un formulaire qui ne fait rien.
+
+---
+
+### 6.4 — Règles communes aux trois routes
+
+**Ne jamais afficher le succès avant la confirmation du serveur.** Côté frontend, remplacer chaque `setTimeout` par l'appel réel et n'afficher le message de réussite que sur réponse positive. En cas d'échec, afficher une erreur en `#E63946` avec un recours utilisable — par exemple le lien WhatsApp direct.
+
+**Adresse de destination** : `contact@entrepreneurbenin.pro`, déjà présente dans [src/app/prendre-rdv/page.tsx](src/app/prendre-rdv/page.tsx) et [src/components/home/ContactCTA.tsx](src/components/home/ContactCTA.tsx). **À confirmer avec la MEB** et à externaliser en variable d'environnement.
+
+**Anti-spam** : les trois formulaires sont publics et sans aucune protection. Prévoir au minimum une limitation de débit par IP, plus un honeypot ou un captcha.
+
+**Données personnelles** : noms, numéros WhatsApp et e-mails sont collectés. Prévoir une politique de conservation, et un lien vers les mentions légales depuis chaque formulaire.
 
 ---
 
@@ -318,7 +386,9 @@ Ajouter `.env*.local` au `.gitignore`.
 **Une seule question de conception reste ouverte.** Le récap est aujourd'hui rattaché à l'événement lui-même. Or une JPO a lieu chaque mois : si la MEB veut conserver l'historique de **chaque** édition (mars, avril, mai…) plutôt qu'un récap unique écrasé à chaque fois, il faut une table `event_editions` séparée, liée à `events`.
 **À trancher avec la MEB avant de figer le schéma** — la migration est bien plus coûteuse ensuite.
 
-**Le compteur de places ne décompte pas.** Le frontend affiche « N PLACES RESTANTES » mais aucune inscription ne le décrémente.
+**Le compteur de places ne décompte pas.** Le frontend affiche « N PLACES RESTANTES » mais aucune inscription ne le décrémente. Voir §6.2.
+
+**Des promesses sont affichées aux visiteurs sans être tenues** — « Confirmation immédiate », « nous te recontactons sous 24h par WhatsApp ». Soit le backend les honore, soit les textes doivent être revus. Voir §6.2.
 
 **Pas de sitemap ni de `robots.txt`.** Le CDC demande un SEO local soigné (JSON-LD, Open Graph dynamique).
 
@@ -326,13 +396,15 @@ Ajouter `.env*.local` au `.gitignore`.
 
 ## 9. Ordre de travail suggéré
 
-1. **Auth Supabase + protection de `/dashboard`** — bloquant pour la sécurité
-2. **Route e-mail `/api/contact`** — bloquant pour l'objectif métier n°1 : les demandes sont actuellement perdues
+1. **Les trois routes de formulaire** — `/api/rdv`, `/api/event-registration`, `/api/newsletter`. Priorité absolue : chaque jour qui passe, des demandes de RDV et des inscriptions à des événements sont définitivement perdues.
+2. **Auth Supabase + protection de `/dashboard`** — bloquant pour la sécurité
 3. **Migration `storage.ts` → Supabase** — rend le dashboard réellement utile
 4. **Upload → Supabase Storage** — rend les photos persistantes
 5. Anti-spam, optimisation des images, SEO technique
 
-Les étapes 1 et 2 peuvent être menées en parallèle. La 4 dépend de la 1 pour l'authentification des écritures.
+Les étapes 1 et 2 peuvent être menées en parallèle. La 4 dépend de la 2 pour l'authentification des écritures.
+
+> **Si une seule chose doit être faite en premier**, c'est l'étape 1. Le reste dégrade l'expérience d'administration ; l'étape 1 fait perdre des clients.
 
 ---
 
