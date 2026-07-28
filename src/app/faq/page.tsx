@@ -66,10 +66,11 @@ export default function FaqPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    const hidden = getHiddenPages();
-    if (hidden.includes("/faq")) {
-      setIsPageHidden(true);
-    }
+    getHiddenPages().then((hidden) => {
+      if (hidden.includes("/faq")) {
+        setIsPageHidden(true);
+      }
+    });
   }, []);
 
   if (isPageHidden) {

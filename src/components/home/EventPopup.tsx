@@ -23,50 +23,55 @@ export function EventPopup() {
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
 
   useEffect(() => {
-    // Determine closest upcoming event
-    const now = new Date();
-    const storedEvents = getEvents();
-    const futureEvents = storedEvents
-      .filter((e) => !e.isHidden)
-      .map((e) => ({
-        num: e.num,
-        title: e.title,
-        dateStr: e.dateStr,
-        time: e.time,
-        date: new Date(e.dateRaw),
-        desc: e.desc,
-        tag: e.tag,
-        seats: e.seats,
-        // Le popup ne gère que les 4 styles colorés : le template 05 (photo) y retombe sur le 01.
-        templateStyle: ((e.templateStyle === "05" ? "01" : e.templateStyle)
-          || (["01", "02", "03", "04"].includes(e.num) ? e.num : "01")) as "01" | "02" | "03" | "04",
-      }))
-      .filter((e) => e.date > now);
+    let cancelled = false;
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
-    if (futureEvents.length === 0) return;
+    getEvents().then((storedEvents) => {
+      if (cancelled) return;
 
-    // Sort ascending
-    futureEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
-    const closest = futureEvents[0];
-    setActiveEvent(closest);
+      // Determine closest upcoming event
+      const now = new Date();
+      const futureEvents = storedEvents
+        .filter((e) => !e.isHidden)
+        .map((e) => ({
+          num: e.num,
+          title: e.title,
+          dateStr: e.dateStr,
+          time: e.time,
+          date: new Date(e.dateRaw),
+          desc: e.desc,
+          tag: e.tag,
+          seats: e.seats,
+          // Le popup ne gère que les 4 styles colorés : le template 05 (photo) y retombe sur le 01.
+          templateStyle: ((e.templateStyle === "05" ? "01" : e.templateStyle)
+            || (["01", "02", "03", "04"].includes(e.num) ? e.num : "01")) as "01" | "02" | "03" | "04",
+        }))
+        .filter((e) => e.date > now);
 
-    // Check if popup has already been shown in this browser session
-    const hasBeenShown = sessionStorage.getItem("eventPopupShown");
-    if (!hasBeenShown) {
-      const openTimer = setTimeout(() => {
-        setIsOpen(true);
-        sessionStorage.setItem("eventPopupShown", "true");
-      }, 1200);
+      if (futureEvents.length === 0) return;
 
-      const closeTimer = setTimeout(() => {
-        setIsOpen(false);
-      }, 11200);
+      // Sort ascending
+      futureEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
+      const closest = futureEvents[0];
+      setActiveEvent(closest);
 
-      return () => {
-        clearTimeout(openTimer);
-        clearTimeout(closeTimer);
-      };
-    }
+      // Check if popup has already been shown in this browser session
+      const hasBeenShown = sessionStorage.getItem("eventPopupShown");
+      if (!hasBeenShown) {
+        timers.push(
+          setTimeout(() => {
+            setIsOpen(true);
+            sessionStorage.setItem("eventPopupShown", "true");
+          }, 1200)
+        );
+        timers.push(setTimeout(() => setIsOpen(false), 11200));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
   }, []);
 
   return (

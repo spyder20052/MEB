@@ -1,29 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getAuthenticatedAdmin } from "@/lib/supabase/server";
+
+// POST /api/upload — envoi de photos vers Supabase Storage (bucket "event-photos").
+// Le contrat d'entrée/sortie est identique à l'ancienne version disque
+// (BACKEND.md §5) : le frontend n'a rien à changer.
 
 // Formats acceptés et poids maximum par photo (5 Mo).
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 const MAX_SIZE = 5 * 1024 * 1024;
-
-const UPLOAD_DIR = path.join(process.cwd(), "public", "images", "events");
+const BUCKET = "event-photos";
 
 // Nettoie le nom d'origine pour éviter tout chemin traversant ou caractère exotique.
 const slugify = (filename: string) => {
-  const ext = path.extname(filename).toLowerCase();
-  const base = path
-    .basename(filename, ext)
+  const dot = filename.lastIndexOf(".");
+  const rawExt = dot >= 0 ? filename.slice(dot).toLowerCase() : "";
+  const rawBase = dot >= 0 ? filename.slice(0, dot) : filename;
+  const base = rawBase
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .toLowerCase()
     .slice(0, 60);
-  return { base: base || "photo", ext: ext || ".jpg" };
+  const ext = /^\.[a-z0-9]+$/.test(rawExt) ? rawExt : ".jpg";
+  return { base: base || "photo", ext };
 };
 
 export async function POST(req: NextRequest) {
   try {
+    // Écriture réservée aux administrateurs connectés.
+    const admin = await getAuthenticatedAdmin();
+    if (!admin) {
+      return NextResponse.json(
+        { error: "Session expirée. Reconnecte-toi au dashboard." },
+        { status: 401 }
+      );
+    }
+
     // Un corps vide ou mal formé fait échouer formData() : on renvoie un message clair.
     const formData = await req.formData().catch(() => null);
     if (!formData) {
@@ -36,8 +50,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Aucun fichier reçu." }, { status: 400 });
     }
 
-    await mkdir(UPLOAD_DIR, { recursive: true });
-
+    const supabase = createSupabaseAdminClient();
     const paths: string[] = [];
     const errors: string[] = [];
 
@@ -56,9 +69,20 @@ export async function POST(req: NextRequest) {
       const unique = `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
 
       const buffer = Buffer.from(await file.arrayBuffer());
-      await writeFile(path.join(UPLOAD_DIR, unique), buffer);
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET)
+        .upload(unique, buffer, { contentType: file.type, upsert: false });
 
-      paths.push(`/images/events/${unique}`);
+      if (uploadError) {
+        console.error("[upload] storage:", uploadError.message);
+        errors.push(`${file.name} : l'envoi a échoué.`);
+        continue;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from(BUCKET).getPublicUrl(unique);
+      paths.push(publicUrl);
     }
 
     if (paths.length === 0) {

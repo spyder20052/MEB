@@ -21,24 +21,27 @@ export default function ProjetsPage() {
   const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const hidden = getHiddenPages();
-    if (hidden.includes("/projets")) {
-      setIsPageHidden(true);
-    }
-
-    const active = getProjects().filter((p) => !p.isHidden);
-    setOriginalCount(active.length);
-    
-    if (active.length > 0) {
-      // Pad to at least 5 items to keep carousel slots filled
-      let padded = [...active];
-      while (padded.length < 5) {
-        padded = [...padded, ...active];
+    getHiddenPages().then((hidden) => {
+      if (hidden.includes("/projets")) {
+        setIsPageHidden(true);
       }
-      setFannedProjects(padded);
-    } else {
-      setFannedProjects([]);
-    }
+    });
+
+    getProjects().then((projects) => {
+      const active = projects.filter((p) => !p.isHidden);
+      setOriginalCount(active.length);
+
+      if (active.length > 0) {
+        // Pad to at least 5 items to keep carousel slots filled
+        let padded = [...active];
+        while (padded.length < 5) {
+          padded = [...padded, ...active];
+        }
+        setFannedProjects(padded);
+      } else {
+        setFannedProjects([]);
+      }
+    });
   }, []);
 
   useEffect(() => {

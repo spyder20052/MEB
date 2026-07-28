@@ -24,7 +24,6 @@ export const Navbar = () => {
   const [activeLinks, setActiveLinks] = useState(navLinks);
   const pathname = usePathname();
   const isWhiteBgPage = pathname === "/services" || pathname === "/evenements" || pathname === "/collaborateurs" || pathname === "/projets" || pathname === "/prendre-rdv" || pathname === "/faq" || pathname === "/dashboard";
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const isLoginPage = pathname === "/dashboard";
 
   useEffect(() => {
@@ -39,21 +38,10 @@ export const Navbar = () => {
   }, [open]);
 
   useEffect(() => {
-    const checkAuth = () => {
-      setIsAdminLoggedIn(sessionStorage.getItem("meb_admin_logged_in") === "true");
-    };
-    checkAuth();
-    window.addEventListener("meb_admin_auth_changed", checkAuth);
-    window.addEventListener("storage", checkAuth);
-    return () => {
-      window.removeEventListener("meb_admin_auth_changed", checkAuth);
-      window.removeEventListener("storage", checkAuth);
-    };
-  }, [pathname]);  useEffect(() => {
     const loadSettings = () => {
-      const hidden = getHiddenPages();
-      const filtered = navLinks.filter((link) => !hidden.includes(link.href));
-      setActiveLinks(filtered);
+      getHiddenPages().then((hidden) => {
+        setActiveLinks(navLinks.filter((link) => !hidden.includes(link.href)));
+      });
     };
     loadSettings();
     window.addEventListener("meb_settings_updated", loadSettings);
@@ -63,7 +51,7 @@ export const Navbar = () => {
   }, []);
 
   // Le dashboard est un espace d'administration : pas de navigation publique flottante.
-  if (pathname === "/dashboard") return null;
+  if (pathname.startsWith("/dashboard")) return null;
 
   return (
     <>

@@ -136,10 +136,11 @@ export default function CommunautePage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const hidden = getHiddenPages();
-    if (hidden.includes("/communaute")) {
-      setIsPageHidden(true);
-    }
+    getHiddenPages().then((hidden) => {
+      if (hidden.includes("/communaute")) {
+        setIsPageHidden(true);
+      }
+    });
   }, []);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sectionHeaderRef = useRef<HTMLDivElement>(null);

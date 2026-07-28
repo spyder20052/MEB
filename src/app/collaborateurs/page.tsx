@@ -17,10 +17,11 @@ export default function CollaborateursPage() {
   const textRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
-    const hidden = getHiddenPages();
-    if (hidden.includes("/collaborateurs")) {
-      setIsPageHidden(true);
-    }
+    getHiddenPages().then((hidden) => {
+      if (hidden.includes("/collaborateurs")) {
+        setIsPageHidden(true);
+      }
+    });
   }, []);
 
   const textContent = "COLLABORER AVEC LES INSTITUTIONS ET ENTREPRISES PARTENAIRES POUR CRÉER DES OPPORTUNITÉS DURABLES ET UN IMPACT CONCRET POUR NOS ENTREPRENEURS.";

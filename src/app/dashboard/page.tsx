@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -18,7 +18,11 @@ import {
   ArrowDownLeft,
   Lock,
   Camera,
-  UploadSimple
+  UploadSimple,
+  Bell,
+  UsersThree,
+  EnvelopeSimple,
+  UserGear
 } from "@phosphor-icons/react";
 import {
   getEvents,
@@ -29,11 +33,25 @@ import {
   resetProjects,
   getHiddenPages,
   saveHiddenPages,
-  getAdminCode,
-  saveAdminCode,
   EventItem,
   ProjectItem
 } from "@/utils/storage";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { RequestsTab } from "@/components/dashboard/RequestsTab";
+import { RegistrationsTab } from "@/components/dashboard/RegistrationsTab";
+import { NewsletterTab } from "@/components/dashboard/NewsletterTab";
+import { AdminsTab } from "@/components/dashboard/AdminsTab";
+import { SecurityTab } from "@/components/dashboard/SecurityTab";
+
+type TabId =
+  | "pages"
+  | "events"
+  | "projects"
+  | "rdv"
+  | "registrations"
+  | "newsletter"
+  | "admins"
+  | "security";
 
 const PAGE_LIST = [
   { label: "Services", href: "/services" },
@@ -46,14 +64,15 @@ const PAGE_LIST = [
 ];
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<"pages" | "events" | "projects" | "settings">("pages");
+  const [activeTab, setActiveTab] = useState<TabId>("pages");
 
-  // Authentication states
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [inputCode, setInputCode] = useState("");
-  const [adminCode, setAdminCode] = useState("1234");
-  const [codeEditValue, setCodeEditValue] = useState("");
-  const [authError, setAuthError] = useState(false);
+  // Authentification Supabase (e-mail + mot de passe)
+  const [authStatus, setAuthStatus] = useState<"loading" | "login" | "authed">("loading");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loggingIn, setLoggingIn] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Local States loaded from storage
   const [hiddenPages, setHiddenPages] = useState<string[]>([]);
@@ -66,6 +85,7 @@ export default function DashboardPage() {
     sector: "",
     desc: "",
     colorTheme: "green", // green, yellow, red, cyan, stone
+    image: "", // Image de la carte, choisie dès la création (optionnelle)
   });
 
   // Event Add Form State
@@ -88,58 +108,104 @@ export default function DashboardPage() {
   const [uploadingEvent, setUploadingEvent] = useState<string | null>(null);
   const [dragOverEvent, setDragOverEvent] = useState<string | null>(null);
 
+  // Session Supabase : vérifiée côté serveur, plus de booléen falsifiable
+  // dans sessionStorage (BACKEND.md §3).
   useEffect(() => {
-    // Load all settings on mount
-    setHiddenPages(getHiddenPages());
-    setEvents(getEvents());
-    setProjects(getProjects());
+    const supabase = getSupabaseBrowserClient();
 
-    // Réinitialisation du code d'accès sur "1234" au chargement
-    saveAdminCode("1234");
-    const code = getAdminCode();
-    setAdminCode(code);
-    setCodeEditValue(code);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUserEmail(user.email ?? null);
+        setAuthStatus("authed");
+      } else {
+        setAuthStatus("login");
+      }
+    });
 
-    const token = sessionStorage.getItem("meb_admin_logged_in");
-    if (token === "true") {
-      setIsAuthenticated(true);
-    }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUserEmail(session.user.email ?? null);
+        setAuthStatus("authed");
+      } else {
+        setAuthStatus("login");
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  // Charge le contenu une fois la session confirmée.
+  useEffect(() => {
+    if (authStatus !== "authed") return;
+    getHiddenPages().then(setHiddenPages);
+    getEvents().then(setEvents);
+    getProjects().then(setProjects);
+  }, [authStatus]);
 
   const triggerNotification = (message: string) => {
     setNotification(message);
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputCode.trim() === adminCode.trim()) {
-      setIsAuthenticated(true);
-      setAuthError(false);
-      sessionStorage.setItem("meb_admin_logged_in", "true");
-      triggerNotification("Connexion réussie");
+  // ------------------------------------------------------------------
+  // Persistance debouncée : l'état local suit chaque frappe, la base
+  // n'est écrite qu'après une courte pause (ou immédiatement pour les
+  // actions structurantes : ajout, suppression, masquage).
+  // ------------------------------------------------------------------
+  const eventsSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const persistEvents = (updated: EventItem[], immediate = false) => {
+    setEvents(updated);
+    if (eventsSaveTimer.current) clearTimeout(eventsSaveTimer.current);
+    const run = () =>
+      saveEvents(updated).catch(() => triggerNotification("Échec de l'enregistrement"));
+    if (immediate) {
+      run();
     } else {
-      setAuthError(true);
-      setInputCode("");
+      eventsSaveTimer.current = setTimeout(run, 600);
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    sessionStorage.removeItem("meb_admin_logged_in");
-    setInputCode("");
-    triggerNotification("Déconnexion réussie");
+  const projectsSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const persistProjects = (updated: ProjectItem[], immediate = false) => {
+    setProjects(updated);
+    if (projectsSaveTimer.current) clearTimeout(projectsSaveTimer.current);
+    const run = () =>
+      saveProjects(updated).catch(() => triggerNotification("Échec de l'enregistrement"));
+    if (immediate) {
+      run();
+    } else {
+      projectsSaveTimer.current = setTimeout(run, 600);
+    }
   };
 
-  const handleSaveNewCode = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!codeEditValue.trim()) {
-      alert("Le code ne peut pas être vide");
+    setLoggingIn(true);
+    setAuthError(null);
+
+    const supabase = getSupabaseBrowserClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: loginEmail.trim(),
+      password: loginPassword,
+    });
+    setLoggingIn(false);
+
+    if (error) {
+      setAuthError("Identifiants incorrects. Vérifie ton e-mail et ton mot de passe.");
+      setLoginPassword("");
       return;
     }
-    setAdminCode(codeEditValue);
-    saveAdminCode(codeEditValue);
-    triggerNotification("Code d'accès mis à jour");
+    triggerNotification("Connexion réussie");
+  };
+
+  const handleLogout = async () => {
+    const supabase = getSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    setLoginEmail("");
+    setLoginPassword("");
+    triggerNotification("Déconnexion réussie");
   };
 
   // --- PAGE VISIBILITY HANDLERS ---
@@ -157,11 +223,10 @@ export default function DashboardPage() {
   };
 
   // --- EVENT HANDLERS ---
-  const handleEventChange = (index: number, field: keyof EventItem, value: any) => {
+  const handleEventChange = <K extends keyof EventItem>(index: number, field: K, value: EventItem[K]) => {
     const updated = [...events];
     updated[index] = { ...updated[index], [field]: value };
-    setEvents(updated);
-    saveEvents(updated);
+    persistEvents(updated);
   };
 
   // Envoie les photos vers /api/upload puis rattache les chemins retournés à l'événement.
@@ -273,14 +338,13 @@ export default function DashboardPage() {
     const updated = [...events];
     const isHidden = !updated[index].isHidden;
     updated[index] = { ...updated[index], isHidden };
-    setEvents(updated);
-    saveEvents(updated);
+    persistEvents(updated, true);
     triggerNotification(`L'événement "${updated[index].title}" a été ${isHidden ? "masqué" : "affiché"}.`);
   };
 
-  const handleResetEvents = () => {
+  const handleResetEvents = async () => {
     if (window.confirm("Voulez-vous restaurer les événements par défaut ?")) {
-      const defaults = resetEvents();
+      const defaults = await resetEvents();
       setEvents(defaults);
       triggerNotification("Événements réinitialisés aux valeurs par défaut.");
     }
@@ -314,8 +378,7 @@ export default function DashboardPage() {
     };
 
     const updated = [...events, created];
-    setEvents(updated);
-    saveEvents(updated);
+    persistEvents(updated, true);
 
     setNewEvent({
       title: "",
@@ -333,36 +396,90 @@ export default function DashboardPage() {
   };
 
   const handleDeleteEvent = (num: string) => {
-    if (window.confirm("Voulez-vous supprimer cet événement ?")) {
+    if (window.confirm("Voulez-vous supprimer cet événement ? Les inscriptions associées seront aussi supprimées.")) {
       const updated = events.filter((e) => e.num !== num);
-      setEvents(updated);
-      saveEvents(updated);
+      persistEvents(updated, true);
       triggerNotification("Événement supprimé.");
     }
   };
 
   // --- PROJECT HANDLERS ---
-  const handleProjectChange = (index: number, field: keyof ProjectItem, value: any) => {
+  const handleProjectChange = <K extends keyof ProjectItem>(index: number, field: K, value: ProjectItem[K]) => {
     const updated = [...projects];
     updated[index] = { ...updated[index], [field]: value };
-    setProjects(updated);
-    saveProjects(updated);
+    persistProjects(updated);
+  };
+
+  // Upload de l'image du formulaire de création (le projet n'existe pas encore).
+  const handleUploadNewProjectImage = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    setUploadingEvent("__new_project__");
+
+    try {
+      const body = new FormData();
+      body.append("files", fileList[0]);
+
+      const res = await fetch("/api/upload", { method: "POST", body });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "L'envoi de l'image a échoué.");
+        return;
+      }
+
+      setNewProject((prev) => ({ ...prev, image: data.paths[0] }));
+      triggerNotification("Image du projet ajoutée");
+    } catch {
+      alert("L'envoi de l'image a échoué. Vérifie ta connexion.");
+    } finally {
+      setUploadingEvent(null);
+    }
+  };
+
+  // Remplace l'image d'un projet déjà créé.
+  const handleUploadProjectImage = async (index: number, fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+
+    const targetId = projects[index].id;
+    setUploadingEvent(`project-${targetId}`);
+
+    try {
+      const body = new FormData();
+      body.append("files", fileList[0]);
+
+      const res = await fetch("/api/upload", { method: "POST", body });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "L'envoi de l'image a échoué.");
+        return;
+      }
+
+      // On relit l'index courant : la liste a pu changer pendant l'envoi.
+      const current = projects.findIndex((p) => p.id === targetId);
+      if (current === -1) return;
+
+      handleProjectChange(current, "image", data.paths[0]);
+      triggerNotification("Image du projet mise à jour");
+    } catch {
+      alert("L'envoi de l'image a échoué. Vérifie ta connexion.");
+    } finally {
+      setUploadingEvent(null);
+    }
   };
 
   const handleToggleProjectHidden = (index: number) => {
     const updated = [...projects];
     const isHidden = !updated[index].isHidden;
     updated[index] = { ...updated[index], isHidden };
-    setProjects(updated);
-    saveProjects(updated);
+    persistProjects(updated, true);
     triggerNotification(`Le projet "${updated[index].title}" a été ${isHidden ? "masqué" : "affiché"}.`);
   };
 
   const handleDeleteProject = (id: string) => {
     if (window.confirm("Voulez-vous supprimer ce projet ?")) {
       const updated = projects.filter((p) => p.id !== id);
-      setProjects(updated);
-      saveProjects(updated);
+      persistProjects(updated, true);
       triggerNotification("Projet supprimé.");
     }
   };
@@ -396,7 +513,7 @@ export default function DashboardPage() {
       title: newProject.title,
       sector: newProject.sector,
       desc: newProject.desc,
-      image: "/images/entrepreneur-1.png",
+      image: newProject.image || "/images/entrepreneur-1.png",
       bgColor,
       tagColor,
       isHidden: false,
@@ -411,24 +528,33 @@ export default function DashboardPage() {
       sector: "",
       desc: "",
       colorTheme: "green",
+      image: "",
     });
 
     triggerNotification(`Le projet "${created.title}" a été ajouté.`);
   };
 
-  const handleResetProjects = () => {
+  const handleResetProjects = async () => {
     if (window.confirm("Voulez-vous restaurer les projets par défaut ?")) {
-      const defaults = resetProjects();
+      const defaults = await resetProjects();
       setProjects(defaults);
       triggerNotification("Projets réinitialisés aux valeurs par défaut.");
     }
   };
 
-  if (!isAuthenticated) {
+  if (authStatus === "loading") {
+    return (
+      <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center">
+        <ArrowsClockwise size={28} weight="bold" className="text-[#00B140] animate-spin" />
+      </div>
+    );
+  }
+
+  if (authStatus === "login") {
     return (
       <div className="min-h-screen bg-[#F5F5F5] text-[#060D03] flex items-center justify-center pt-24 pb-20 relative px-4">
         <div className="max-w-[420px] w-full bg-white border border-[#060D03]/10 rounded-[2rem] p-8 sm:p-10 shadow-2xl relative z-10 text-center">
-          
+
           <div className="mb-8 flex justify-center">
             <div className="relative w-24 h-24 drop-shadow-[0_0_12px_rgba(0,240,64,0.2)]">
               <Image
@@ -446,39 +572,62 @@ export default function DashboardPage() {
             CONNEXION <span className="text-[#00B140]">ADMIN</span>
           </h2>
           <p className="font-body text-xs text-[#060D03]/60 mb-8 leading-relaxed">
-            Saisissez le code d&apos;accès administrateur pour gérer les pages, événements et projets.
+            Connectez-vous avec votre compte administrateur pour gérer le site.
           </p>
 
-          <form onSubmit={handleLoginSubmit} className="space-y-6 text-left">
+          <form onSubmit={handleLoginSubmit} className="space-y-5 text-left">
             <div>
-              <label htmlFor="accessCode" className="block font-heading font-bold text-[10px] uppercase tracking-widest text-[#060D03]/50 mb-2">
-                Code d&apos;accès
+              <label htmlFor="adminEmail" className="block font-heading font-bold text-[10px] uppercase tracking-widest text-[#060D03]/50 mb-2">
+                Adresse e-mail
               </label>
               <input
-                id="accessCode"
-                type="password"
-                value={inputCode}
-                onChange={(e) => setInputCode(e.target.value)}
-                placeholder="••••••"
-                className={`w-full h-12 px-4 rounded-xl border bg-transparent text-center text-lg tracking-widest font-mono focus:outline-none transition-all ${
-                  authError 
-                    ? "border-[#E63946] focus:border-[#E63946]" 
-                    : "border-[#060D03]/15 focus:border-[#00B140] focus:ring-2 focus:ring-[#00B140]/10"
-                }`}
+                id="adminEmail"
+                type="email"
+                required
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                placeholder="admin@entrepreneurbenin.pro"
+                autoComplete="email"
+                className="w-full h-12 px-4 rounded-xl border border-[#060D03]/15 focus:border-[#00B140] focus:ring-2 focus:ring-[#00B140]/10 bg-transparent text-sm focus:outline-none transition-all"
                 autoFocus
               />
+            </div>
+
+            <div>
+              <label htmlFor="adminPassword" className="block font-heading font-bold text-[10px] uppercase tracking-widest text-[#060D03]/50 mb-2">
+                Mot de passe
+              </label>
+              <input
+                id="adminPassword"
+                type="password"
+                required
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                className={`w-full h-12 px-4 rounded-xl border bg-transparent text-sm focus:outline-none transition-all ${
+                  authError
+                    ? "border-[#E63946] focus:border-[#E63946]"
+                    : "border-[#060D03]/15 focus:border-[#00B140] focus:ring-2 focus:ring-[#00B140]/10"
+                }`}
+              />
               {authError && (
-                <p className="text-[#E63946] text-[10px] mt-2 font-mono text-center uppercase tracking-wider">Code incorrect. Veuillez réessayer.</p>
+                <p className="text-[#E63946] text-[10px] mt-2 font-mono text-center uppercase tracking-wider">{authError}</p>
               )}
             </div>
 
             <button
               type="submit"
-              className="w-full bg-[#00B140] hover:bg-[#00D94F] text-white font-heading font-bold py-4 rounded-xl transition-all duration-300 uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+              disabled={loggingIn}
+              className="w-full bg-[#00B140] hover:bg-[#00D94F] text-white font-heading font-bold py-4 rounded-xl transition-all duration-300 uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-lg cursor-pointer disabled:opacity-60"
             >
-              <span>Se connecter</span>
+              {loggingIn ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <span>Se connecter</span>
+              )}
             </button>
-            
+
             <Link
               href="/"
               className="block text-center text-[#060D03]/40 hover:text-[#060D03] transition-colors text-[10px] font-mono uppercase tracking-widest pt-2"
@@ -523,7 +672,12 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center flex-wrap">
+            {userEmail && (
+              <span className="font-mono text-[9px] uppercase tracking-wider text-[#060D03]/50 bg-white border border-[#060D03]/10 px-3 py-2 rounded-xl">
+                {userEmail}
+              </span>
+            )}
             <button
               onClick={handleResetEvents}
               className="px-4 py-2 bg-[#060D03]/5 hover:bg-[#060D03] hover:text-white border border-[#060D03]/10 rounded-xl font-mono text-[9px] uppercase tracking-wider flex items-center gap-1.5 transition-all duration-300 cursor-pointer shadow-sm text-[#060D03]"
@@ -568,11 +722,15 @@ export default function DashboardPage() {
             { id: "pages", label: "Pages du site", icon: <Gear size={16} /> },
             { id: "events", label: "Événements MEB", icon: <Calendar size={16} /> },
             { id: "projects", label: "Projets membres", icon: <Briefcase size={16} /> },
-            { id: "settings", label: "Configuration", icon: <Lock size={16} /> },
+            { id: "rdv", label: "Demandes RDV", icon: <Bell size={16} /> },
+            { id: "registrations", label: "Inscriptions", icon: <UsersThree size={16} /> },
+            { id: "newsletter", label: "Newsletter", icon: <EnvelopeSimple size={16} /> },
+            { id: "admins", label: "Administrateurs", icon: <UserGear size={16} /> },
+            { id: "security", label: "Sécurité", icon: <Lock size={16} /> },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as TabId)}
               className={`flex items-center gap-2 px-6 py-4 border-b-2 font-heading font-bold text-xs uppercase tracking-widest transition-all cursor-pointer ${
                 activeTab === tab.id
                   ? "border-[#00B140] text-[#00B140]"
@@ -686,7 +844,7 @@ export default function DashboardPage() {
                       </label>
                       <select
                         value={newEvent.templateStyle}
-                        onChange={(e) => setNewEvent({ ...newEvent, templateStyle: e.target.value as any })}
+                        onChange={(e) => setNewEvent({ ...newEvent, templateStyle: e.target.value as "01" | "02" | "03" | "04" | "05" })}
                         className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none text-[#060D03]"
                       >
                         <option value="01">Template 01 (Rouge JPO)</option>
@@ -1146,7 +1304,7 @@ export default function DashboardPage() {
                               <select
                                 value={event.templateStyle || (isCustom ? "01" : (event.num as string))}
                                 disabled={event.isHidden}
-                                onChange={(e) => handleEventChange(idx, "templateStyle", e.target.value)}
+                                onChange={(e) => handleEventChange(idx, "templateStyle", e.target.value as EventItem["templateStyle"])}
                                 className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none text-[#060D03]"
                               >
                                 <option value="01">Template 01 (Rouge)</option>
@@ -1433,6 +1591,73 @@ export default function DashboardPage() {
                         <option value="stone">Brutal Gris (Stone)</option>
                       </select>
                     </div>
+
+                    <div>
+                      <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
+                        Image de la carte
+                      </label>
+
+                      <label
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setDragOverEvent("__new_project__");
+                        }}
+                        onDragLeave={() => setDragOverEvent(null)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDragOverEvent(null);
+                          handleUploadNewProjectImage(e.dataTransfer.files);
+                        }}
+                        className={`flex flex-col items-center justify-center gap-2 w-full py-6 px-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all ${
+                          dragOverEvent === "__new_project__"
+                            ? "border-[#00B140] bg-[#E8F5EE]"
+                            : "border-[#060D03]/15 bg-[#F5F5F5] hover:border-[#00B140] hover:bg-[#E8F5EE]/50"
+                        } ${uploadingEvent === "__new_project__" ? "opacity-60 pointer-events-none" : ""}`}
+                      >
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/avif"
+                          className="sr-only"
+                          onChange={(e) => {
+                            handleUploadNewProjectImage(e.target.files);
+                            e.target.value = "";
+                          }}
+                        />
+                        {uploadingEvent === "__new_project__" ? (
+                          <>
+                            <ArrowsClockwise size={18} weight="bold" className="text-[#00B140] animate-spin" />
+                            <span className="font-heading font-bold text-[10px] uppercase tracking-widest text-[#00B140]">
+                              Envoi en cours...
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadSimple size={18} weight="bold" className="text-[#00B140]" />
+                            <span className="font-heading font-bold text-[10px] uppercase tracking-widest text-[#060D03]">
+                              Choisir l&apos;image
+                            </span>
+                            <span className="font-body text-[10px] text-[#060D03]/50 text-center">
+                              ou glisse-dépose ton image ici — JPG, PNG ou WebP, 5 Mo max
+                            </span>
+                          </>
+                        )}
+                      </label>
+
+                      {newProject.image && (
+                        <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-[#060D03]/10 bg-[#F5F5F5] group mt-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={newProject.image} alt="Aperçu de l'image du nouveau projet" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setNewProject({ ...newProject, image: "" })}
+                            aria-label="Retirer l'image"
+                            className="absolute top-1 right-1 w-6 h-6 rounded-lg bg-[#E63946] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[#00B140] transition-opacity cursor-pointer"
+                          >
+                            <Trash size={12} weight="bold" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="lg:col-span-8 flex flex-col justify-between gap-4">
@@ -1552,6 +1777,44 @@ export default function DashboardPage() {
                             className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none disabled:opacity-50 text-[#060D03]"
                           />
                         </div>
+
+                        <div className="sm:col-span-3">
+                          <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
+                            Image de la carte
+                          </label>
+                          <div className={`flex items-center gap-3 ${project.isHidden ? "opacity-40 pointer-events-none" : ""}`}>
+                            <label
+                              className={`flex-1 flex items-center justify-center gap-2 h-10 px-3 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
+                                uploadingEvent === `project-${project.id}`
+                                  ? "opacity-60 pointer-events-none border-[#00B140]"
+                                  : "border-[#060D03]/15 bg-[#F5F5F5] hover:border-[#00B140] hover:bg-[#E8F5EE]/50"
+                              }`}
+                            >
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/avif"
+                                className="sr-only"
+                                onChange={(e) => {
+                                  handleUploadProjectImage(idx, e.target.files);
+                                  e.target.value = "";
+                                }}
+                              />
+                              {uploadingEvent === `project-${project.id}` ? (
+                                <ArrowsClockwise size={14} weight="bold" className="text-[#00B140] animate-spin" />
+                              ) : (
+                                <UploadSimple size={14} weight="bold" className="text-[#00B140]" />
+                              )}
+                              <span className="font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]">
+                                Remplacer l&apos;image
+                              </span>
+                            </label>
+
+                            <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-[#060D03]/10 shrink-0">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={project.image} alt="" aria-hidden="true" className="w-full h-full object-cover" />
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Right: Actions */}
@@ -1589,45 +1852,21 @@ export default function DashboardPage() {
             </motion.div>
           )}
 
-          {/* TAB 4: CONFIGURATION */}
-          {activeTab === "settings" && (
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-6"
-            >
-              <div className="bg-white border border-[#060D03]/10 rounded-[2rem] p-6 sm:p-8 shadow-sm">
-                <h3 className="font-heading font-black text-xl uppercase tracking-tight mb-2 text-[#060D03]">
-                  Configuration de la Connexion
-                </h3>
-                <p className="font-body text-xs text-[#060D03]/60 mb-8 max-w-xl">
-                  Modifiez le code d&apos;accès administrateur requis pour accéder à ce tableau de bord. Ce code est stocké localement.
-                </p>
+          {/* TAB 4: DEMANDES DE RDV */}
+          {activeTab === "rdv" && <RequestsTab notify={triggerNotification} />}
 
-                <form onSubmit={handleSaveNewCode} className="max-w-md space-y-6">
-                  <div>
-                    <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-2">
-                      Nouveau code de connexion
-                    </label>
-                    <input
-                      type="password"
-                      value={codeEditValue}
-                      onChange={(e) => setCodeEditValue(e.target.value)}
-                      placeholder="Saisir le nouveau code"
-                      className="w-full h-12 px-4 rounded-xl border border-[#060D03]/15 focus:border-[#00B140] focus:ring-2 focus:ring-[#00B140]/10 bg-white text-sm focus:outline-none text-[#060D03]"
-                    />
-                  </div>
+          {/* TAB 5: INSCRIPTIONS AUX ÉVÉNEMENTS */}
+          {activeTab === "registrations" && <RegistrationsTab notify={triggerNotification} />}
 
-                  <button
-                    type="submit"
-                    className="px-6 py-4 bg-[#00B140] hover:bg-[#00D94F] text-white font-heading font-bold text-xs uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center gap-2 shadow-lg cursor-pointer"
-                  >
-                    <span>Enregistrer le code</span>
-                  </button>
-                </form>
-              </div>
-            </motion.div>
+          {/* TAB 6: ABONNÉS NEWSLETTER */}
+          {activeTab === "newsletter" && <NewsletterTab notify={triggerNotification} />}
+
+          {/* TAB 7: GESTION DES ADMINISTRATEURS */}
+          {activeTab === "admins" && <AdminsTab notify={triggerNotification} />}
+
+          {/* TAB 8: SÉCURITÉ DU COMPTE */}
+          {activeTab === "security" && (
+            <SecurityTab email={userEmail} notify={triggerNotification} />
           )}
         </div>
       </div>

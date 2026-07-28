@@ -85,10 +85,11 @@ export default function ServicesPage() {
   const [isPageHidden, setIsPageHidden] = useState(false);
 
   useEffect(() => {
-    const hidden = getHiddenPages();
-    if (hidden.includes("/services")) {
-      setIsPageHidden(true);
-    }
+    getHiddenPages().then((hidden) => {
+      if (hidden.includes("/services")) {
+        setIsPageHidden(true);
+      }
+    });
   }, []);
 
   if (isPageHidden) {

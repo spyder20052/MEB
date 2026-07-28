@@ -3,13 +3,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  MapPin,
-  Phone,
-  EnvelopeSimple,
   FacebookLogo,
   LinkedinLogo,
   InstagramLogo,
-  ArrowUpRight,
   CaretRight
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
@@ -38,12 +34,14 @@ const links = {
 
 export const Footer = () => {
   const [hiddenPages, setHiddenPages] = useState<string[]>([]);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterStatus, setNewsletterStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [newsletterMessage, setNewsletterMessage] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
     const loadSettings = () => {
-      const hidden = getHiddenPages();
-      setHiddenPages(hidden);
+      getHiddenPages().then(setHiddenPages);
     };
     loadSettings();
     window.addEventListener("meb_settings_updated", loadSettings);
@@ -52,7 +50,36 @@ export const Footer = () => {
     };
   }, []);
 
-  if (pathname === "/dashboard") return null;
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail.trim() || newsletterStatus === "sending") return;
+
+    setNewsletterStatus("sending");
+    setNewsletterMessage(null);
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newsletterEmail.trim(), source: "footer" }),
+      });
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setNewsletterStatus("error");
+        setNewsletterMessage(json.error || "L'inscription a échoué. Réessaie plus tard.");
+        return;
+      }
+
+      setNewsletterStatus("success");
+      setNewsletterMessage("C'est noté ! Vérifie ta boîte mail.");
+      setNewsletterEmail("");
+    } catch {
+      setNewsletterStatus("error");
+      setNewsletterMessage("Connexion impossible. Réessaie plus tard.");
+    }
+  };
+
+  if (pathname.startsWith("/dashboard")) return null;
 
   return (
     <footer className="relative bg-[#060D03] border-t border-white/[0.05] overflow-hidden pt-24 pb-8">
@@ -85,16 +112,42 @@ export const Footer = () => {
             {/* Minimalist Newsletter */}
             <div className="max-w-sm">
               <h5 className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-4">Newsletter</h5>
-              <div className="relative group/input">
+              <form onSubmit={handleNewsletterSubmit} className="relative group/input">
+                <label htmlFor="footer-newsletter-email" className="sr-only">
+                  Adresse e-mail pour la newsletter
+                </label>
                 <input
+                  id="footer-newsletter-email"
                   type="email"
+                  required
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
                   placeholder="votre@email.com"
                   className="w-full bg-white/[0.03] border border-white/10 rounded-full py-3 px-6 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-meb-green/50 transition-all duration-300"
                 />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-meb-green text-meb-dark flex items-center justify-center hover:scale-110 active:scale-95 transition-transform">
-                  <CaretRight weight="bold" />
+                <button
+                  type="submit"
+                  disabled={newsletterStatus === "sending"}
+                  aria-label="S'inscrire à la newsletter"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-meb-green text-meb-dark flex items-center justify-center hover:scale-110 active:scale-95 transition-transform disabled:opacity-60 cursor-pointer"
+                >
+                  {newsletterStatus === "sending" ? (
+                    <span className="w-3.5 h-3.5 border-2 border-meb-dark/30 border-t-meb-dark rounded-full animate-spin" />
+                  ) : (
+                    <CaretRight weight="bold" />
+                  )}
                 </button>
-              </div>
+              </form>
+              {newsletterMessage && (
+                <p
+                  role="status"
+                  className={`mt-3 text-xs font-body ${
+                    newsletterStatus === "error" ? "text-[#E63946]" : "text-meb-green"
+                  }`}
+                >
+                  {newsletterMessage}
+                </p>
+              )}
             </div>
           </div>
 

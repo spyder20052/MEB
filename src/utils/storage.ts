@@ -1,5 +1,8 @@
-// Storage utilities for managing Events, Projects, and Page settings in localStorage.
-// SSR safe checks are included since this runs inside Next.js components.
+// Couche de données du site — anciennement localStorage, désormais Supabase.
+// Les signatures d'origine sont conservées (passées en async) pour limiter
+// la réécriture des composants, cf. BACKEND.md §4 et §10.
+
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export interface EventItem {
   num: string; // "01" (JPO), "02" (Petits-Dej), "03" (Mastermind), "04" (Afterwork) or dynamic ID
@@ -17,13 +20,11 @@ export interface EventItem {
   cardPhoto?: string; // Photo de la carte (template 05), choisie dès la création de l'événement
 
   // --- Bloc "Après-événement" (récapitulatif) ---
-  // Renseigné une fois l'événement passé, pour prouver l'activité réelle de la MEB
-  // et donner envie de s'inscrire aux prochaines éditions.
-  recapPublished?: boolean; // Si true, l'édition apparaît dans "Ils y étaient déjà"
-  recapText?: string; // Résumé / rapport d'activité court
-  recapPhotos?: string[]; // Chemins des photos (ex: "/images/events/jpo-01.jpg")
-  recapAttendees?: number; // Nombre réel de participants
-  recapDateStr?: string; // Date de l'édition passée (ex: "Jeudi 5 Mars 2026")
+  recapPublished?: boolean;
+  recapText?: string;
+  recapPhotos?: string[];
+  recapAttendees?: number;
+  recapDateStr?: string;
 }
 
 export interface ProjectItem {
@@ -50,6 +51,7 @@ export const DEFAULT_EVENTS: EventItem[] = [
     seats: 15,
     dateRaw: "2026-07-02T09:00:00+01:00",
     isHidden: false,
+    templateStyle: "01",
   },
   {
     num: "02",
@@ -63,6 +65,7 @@ export const DEFAULT_EVENTS: EventItem[] = [
     seats: 8,
     dateRaw: "2026-06-30T08:30:00+01:00",
     isHidden: false,
+    templateStyle: "02",
   },
   {
     num: "03",
@@ -76,6 +79,7 @@ export const DEFAULT_EVENTS: EventItem[] = [
     seats: 5,
     dateRaw: "2026-06-27T15:00:00+01:00",
     isHidden: false,
+    templateStyle: "03",
   },
   {
     num: "04",
@@ -89,6 +93,7 @@ export const DEFAULT_EVENTS: EventItem[] = [
     seats: 30,
     dateRaw: "2026-07-15T18:30:00+01:00",
     isHidden: false,
+    templateStyle: "04",
   },
 ];
 
@@ -145,93 +150,250 @@ export const DEFAULT_PROJECTS: ProjectItem[] = [
   },
 ];
 
-const KEYS = {
-  events: "meb_events",
-  projects: "meb_projects",
-  hiddenPages: "meb_hidden_pages",
-  adminCode: "meb_admin_code",
-};
-
-// Safe localStorage checks
 const isBrowser = () => typeof window !== "undefined";
 
-export const getEvents = (): EventItem[] => {
-  if (!isBrowser()) return DEFAULT_EVENTS;
-  const stored = localStorage.getItem(KEYS.events);
-  if (!stored) {
-    localStorage.setItem(KEYS.events, JSON.stringify(DEFAULT_EVENTS));
-    return DEFAULT_EVENTS;
-  }
-  try {
-    return JSON.parse(stored);
-  } catch (e) {
-    return DEFAULT_EVENTS;
-  }
+// Prévient les composants ouverts (Navbar, /evenements...) qu'une donnée a changé.
+const notifyUpdate = () => {
+  if (isBrowser()) window.dispatchEvent(new Event("meb_settings_updated"));
 };
 
-export const saveEvents = (events: EventItem[]) => {
-  if (!isBrowser()) return;
-  localStorage.setItem(KEYS.events, JSON.stringify(events));
-  // Prévient les pages ouvertes (ex: /evenements) pour un rafraîchissement immédiat.
-  window.dispatchEvent(new Event("meb_settings_updated"));
+// ------------------------------------------------------------------
+// Mapping lignes Postgres (snake_case) <-> objets frontend (camelCase)
+// ------------------------------------------------------------------
+
+type EventRow = {
+  num: string;
+  title: string;
+  tag: string;
+  date_str: string;
+  recurring_str: string;
+  time: string;
+  venue: string;
+  desc: string;
+  seats: number;
+  date_raw: string;
+  is_hidden: boolean;
+  template_style: string;
+  card_photo: string | null;
+  recap_published: boolean;
+  recap_text: string | null;
+  recap_photos: string[] | null;
+  recap_attendees: number | null;
+  recap_date_str: string | null;
 };
 
-export const resetEvents = (): EventItem[] => {
-  saveEvents(DEFAULT_EVENTS);
+const eventFromRow = (row: EventRow): EventItem => ({
+  num: row.num,
+  title: row.title,
+  tag: row.tag,
+  dateStr: row.date_str,
+  recurringStr: row.recurring_str,
+  time: row.time,
+  venue: row.venue,
+  desc: row.desc,
+  seats: row.seats,
+  dateRaw: row.date_raw,
+  isHidden: row.is_hidden,
+  templateStyle: (row.template_style as EventItem["templateStyle"]) ?? "01",
+  cardPhoto: row.card_photo ?? undefined,
+  recapPublished: row.recap_published,
+  recapText: row.recap_text ?? undefined,
+  recapPhotos: row.recap_photos ?? [],
+  recapAttendees: row.recap_attendees ?? undefined,
+  recapDateStr: row.recap_date_str ?? undefined,
+});
+
+const eventToRow = (event: EventItem) => ({
+  num: event.num,
+  title: event.title,
+  tag: event.tag,
+  date_str: event.dateStr,
+  recurring_str: event.recurringStr,
+  time: event.time,
+  venue: event.venue,
+  desc: event.desc,
+  seats: event.seats,
+  date_raw: event.dateRaw,
+  is_hidden: event.isHidden ?? false,
+  template_style: event.templateStyle ?? (["01", "02", "03", "04"].includes(event.num) ? event.num : "01"),
+  card_photo: event.cardPhoto ?? null,
+  recap_published: event.recapPublished ?? false,
+  recap_text: event.recapText ?? null,
+  recap_photos: event.recapPhotos ?? [],
+  recap_attendees: event.recapAttendees ?? null,
+  recap_date_str: event.recapDateStr ?? null,
+});
+
+type ProjectRow = {
+  id: string;
+  title: string;
+  sector: string;
+  desc: string;
+  image: string;
+  bg_color: string;
+  tag_color: string;
+  is_hidden: boolean;
+};
+
+const projectFromRow = (row: ProjectRow): ProjectItem => ({
+  id: row.id,
+  title: row.title,
+  sector: row.sector,
+  desc: row.desc,
+  image: row.image,
+  bgColor: row.bg_color,
+  tagColor: row.tag_color,
+  isHidden: row.is_hidden,
+});
+
+const projectToRow = (project: ProjectItem) => ({
+  id: project.id,
+  title: project.title,
+  sector: project.sector,
+  desc: project.desc,
+  image: project.image,
+  bg_color: project.bgColor,
+  tag_color: project.tagColor,
+  is_hidden: project.isHidden ?? false,
+});
+
+// ------------------------------------------------------------------
+// Événements
+// ------------------------------------------------------------------
+
+export const getEvents = async (): Promise<EventItem[]> => {
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .order("num", { ascending: true });
+  if (error || !data) {
+    console.error("[storage] getEvents:", error?.message);
+    return DEFAULT_EVENTS;
+  }
+  return (data as EventRow[]).map(eventFromRow);
+};
+
+export const saveEvents = async (events: EventItem[]): Promise<void> => {
+  const supabase = getSupabaseBrowserClient();
+
+  const { error: upsertError } = await supabase
+    .from("events")
+    .upsert(events.map(eventToRow), { onConflict: "num" });
+  if (upsertError) {
+    console.error("[storage] saveEvents:", upsertError.message);
+    throw new Error(upsertError.message);
+  }
+
+  // Supprime les événements retirés de la liste (suppression depuis le dashboard).
+  const keptNums = events.map((e) => e.num);
+  const { data: existing } = await supabase.from("events").select("num");
+  const toDelete = (existing ?? [])
+    .map((r) => r.num as string)
+    .filter((num) => !keptNums.includes(num));
+  if (toDelete.length > 0) {
+    await supabase.from("events").delete().in("num", toDelete);
+  }
+
+  notifyUpdate();
+};
+
+export const resetEvents = async (): Promise<EventItem[]> => {
+  await saveEvents(DEFAULT_EVENTS);
   return DEFAULT_EVENTS;
 };
 
-export const getProjects = (): ProjectItem[] => {
-  if (!isBrowser()) return DEFAULT_PROJECTS;
-  const stored = localStorage.getItem(KEYS.projects);
-  if (!stored) {
-    localStorage.setItem(KEYS.projects, JSON.stringify(DEFAULT_PROJECTS));
+// ------------------------------------------------------------------
+// Projets
+// ------------------------------------------------------------------
+
+export const getProjects = async (): Promise<ProjectItem[]> => {
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*")
+    .order("id", { ascending: true });
+  if (error || !data) {
+    console.error("[storage] getProjects:", error?.message);
     return DEFAULT_PROJECTS;
   }
-  try {
-    return JSON.parse(stored);
-  } catch (e) {
-    return DEFAULT_PROJECTS;
+  return (data as ProjectRow[]).map(projectFromRow);
+};
+
+export const saveProjects = async (projects: ProjectItem[]): Promise<void> => {
+  const supabase = getSupabaseBrowserClient();
+
+  const { error: upsertError } = await supabase
+    .from("projects")
+    .upsert(projects.map(projectToRow), { onConflict: "id" });
+  if (upsertError) {
+    console.error("[storage] saveProjects:", upsertError.message);
+    throw new Error(upsertError.message);
   }
+
+  const keptIds = projects.map((p) => p.id);
+  const { data: existing } = await supabase.from("projects").select("id");
+  const toDelete = (existing ?? [])
+    .map((r) => r.id as string)
+    .filter((id) => !keptIds.includes(id));
+  if (toDelete.length > 0) {
+    await supabase.from("projects").delete().in("id", toDelete);
+  }
+
+  notifyUpdate();
 };
 
-export const saveProjects = (projects: ProjectItem[]) => {
-  if (!isBrowser()) return;
-  localStorage.setItem(KEYS.projects, JSON.stringify(projects));
-};
-
-export const resetProjects = (): ProjectItem[] => {
-  saveProjects(DEFAULT_PROJECTS);
+export const resetProjects = async (): Promise<ProjectItem[]> => {
+  await saveProjects(DEFAULT_PROJECTS);
   return DEFAULT_PROJECTS;
 };
 
-export const getHiddenPages = (): string[] => {
-  if (!isBrowser()) return [];
-  const stored = localStorage.getItem(KEYS.hiddenPages);
-  if (!stored) {
+// ------------------------------------------------------------------
+// Visibilité des pages
+// ------------------------------------------------------------------
+
+export const getHiddenPages = async (): Promise<string[]> => {
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from("site_settings")
+    .select("hidden_pages")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error || !data) {
+    if (error) console.error("[storage] getHiddenPages:", error.message);
     return [];
   }
-  try {
-    return JSON.parse(stored);
-  } catch (e) {
-    return [];
+  return data.hidden_pages ?? [];
+};
+
+export const saveHiddenPages = async (paths: string[]): Promise<void> => {
+  const supabase = getSupabaseBrowserClient();
+  const { error } = await supabase
+    .from("site_settings")
+    .upsert({ id: 1, hidden_pages: paths, updated_at: new Date().toISOString() });
+  if (error) {
+    console.error("[storage] saveHiddenPages:", error.message);
+    throw new Error(error.message);
   }
+  notifyUpdate();
 };
 
-export const saveHiddenPages = (paths: string[]) => {
-  if (!isBrowser()) return;
-  localStorage.setItem(KEYS.hiddenPages, JSON.stringify(paths));
-  // Dispatch a custom event to notify components (like Navbar) of page settings updates instantly
-  window.dispatchEvent(new Event("meb_settings_updated"));
-};
+// ------------------------------------------------------------------
+// Realtime — répercute les changements de contenu (dashboard ou autre
+// visiteur) vers tous les onglets ouverts, via l'événement navigateur
+// "meb_settings_updated" que les composants écoutent déjà.
+// ------------------------------------------------------------------
 
-export const getAdminCode = (): string => {
-  if (!isBrowser()) return "1234";
-  const stored = localStorage.getItem(KEYS.adminCode);
-  return stored || "1234";
-};
-
-export const saveAdminCode = (code: string) => {
-  if (!isBrowser()) return;
-  localStorage.setItem(KEYS.adminCode, code);
+export const subscribeToContentUpdates = (): (() => void) => {
+  if (!isBrowser()) return () => {};
+  const supabase = getSupabaseBrowserClient();
+  const channel = supabase
+    .channel("meb-content")
+    .on("postgres_changes", { event: "*", schema: "public", table: "events" }, notifyUpdate)
+    .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, notifyUpdate)
+    .on("postgres_changes", { event: "*", schema: "public", table: "site_settings" }, notifyUpdate)
+    .subscribe();
+  return () => {
+    supabase.removeChannel(channel);
+  };
 };

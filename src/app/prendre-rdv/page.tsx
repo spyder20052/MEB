@@ -3,37 +3,30 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { CaretDown, Check } from "@phosphor-icons/react";
 import gsap from "gsap";
 import { getHiddenPages } from "@/utils/storage";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
-
-// Define form validation schema using Zod
-const rdvSchema = z.object({
-  fullName: z.string().min(2, "Le nom complet doit contenir au moins 2 caractères"),
-  whatsapp: z.string().min(8, "Veuillez entrer un numéro WhatsApp valide (minimum 8 chiffres)"),
-  service: z.string().min(1, "Veuillez choisir un service"),
-  email: z.string().email("Veuillez entrer une adresse email valide").optional().or(z.literal("")),
-  newsletter: z.boolean(),
-  projectDescription: z.string().optional(),
-});
-
-type RdvFormData = z.infer<typeof rdvSchema>;
+// Schéma Zod partagé avec la route API : mêmes règles client et serveur.
+import { rdvSchema, type RdvFormData } from "@/lib/schemas";
 
 export default function PrendreRdvPage() {
   const [isPageHidden, setIsPageHidden] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  // Honeypot anti-spam : champ invisible pour un humain, rempli par les bots.
+  const honeypotRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const hidden = getHiddenPages();
-    if (hidden.includes("/prendre-rdv")) {
-      setIsPageHidden(true);
-    }
+    getHiddenPages().then((hidden) => {
+      if (hidden.includes("/prendre-rdv")) {
+        setIsPageHidden(true);
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -85,12 +78,28 @@ export default function PrendreRdvPage() {
 
   const onSubmit = async (data: RdvFormData) => {
     setIsSubmitting(true);
-    // Simulate submission delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log("Form submitted successfully:", data);
-    setIsSubmitting(false);
-    setSubmitSuccess(true);
-    reset();
+    setSubmitError(null);
+    try {
+      const res = await fetch("/api/rdv", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, website: honeypotRef.current?.value ?? "" }),
+      });
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setSubmitError(json.error || "L'envoi a échoué. Réessaie dans un instant.");
+        return;
+      }
+
+      // Le succès n'est affiché qu'après confirmation du serveur.
+      setSubmitSuccess(true);
+      reset();
+    } catch {
+      setSubmitError("Connexion impossible. Vérifie ton réseau puis réessaie.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isPageHidden) {
@@ -149,6 +158,17 @@ export default function PrendreRdvPage() {
                   onSubmit={handleSubmit(onSubmit)}
                   className="md:col-span-8 flex flex-col w-full"
                 >
+                  {/* Honeypot anti-spam — ne pas remplir */}
+                  <input
+                    ref={honeypotRef}
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    className="sr-only"
+                  />
+
                                 {/* Nom complet */}
                   <div className="flex flex-col mb-8">
                     <label className="font-heading font-bold text-sm text-[#060D03] block mb-4">
@@ -263,6 +283,23 @@ export default function PrendreRdvPage() {
                       </span>
                     )}
                   </div>
+
+                  {/* Erreur serveur : message + recours WhatsApp direct */}
+                  {submitError && (
+                    <div className="mb-8 border border-[#E63946]/30 bg-[#E63946]/5 rounded-xl p-4">
+                      <p className="text-[#E63946] text-xs font-mono uppercase tracking-wider mb-2">
+                        {submitError}
+                      </p>
+                      <a
+                        href="https://wa.me/2290160007007?text=Bonjour%2C%20je%20souhaite%20prendre%20un%20RDV%20avec%20la%20MEB."
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-heading font-bold text-[#060D03] underline hover:text-[#00B140] transition-colors"
+                      >
+                        Écris-nous directement sur WhatsApp →
+                      </a>
+                    </div>
+                  )}
 
                   {/* Submit Button */}
                   <div className="pt-4 flex justify-start">

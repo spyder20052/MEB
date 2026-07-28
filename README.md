@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Site MEB — Maison de l'Entrepreneur du Bénin
 
-## Getting Started
+Site Next.js 16 (App Router) + Supabase (PostgreSQL, Auth, Storage, Realtime) + e-mails SMTP (MailHog en dev, Resend/SMTP en prod).
 
-First, run the development server:
+Les spécifications backend d'origine sont dans [BACKEND.md](BACKEND.md) — elles sont désormais implémentées.
+
+## Mise en route (développement)
+
+Prérequis : Node 22+, Docker Desktop.
 
 ```bash
+# 1. Dépendances
+npm install
+
+# 2. Variables d'environnement
+cp .env.example .env.local   # les valeurs locales par défaut fonctionnent telles quelles
+
+# 3. Supabase local (Postgres + Auth + Storage + Realtime + Studio)
+npm run db:start             # applique les migrations et le seed automatiquement
+
+# 4. MailHog (boîte mail de test) — interface : http://localhost:8025
+npm run mail:start
+
+# 5. Premier compte administrateur
+npm run admin:create -- admin@entrepreneurbenin.pro MotDePasseSolide1 "Admin MEB"
+
+# 6. Serveur de développement
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Site : http://localhost:3000 · Dashboard : http://localhost:3000/dashboard
+- Supabase Studio : http://localhost:54323 · MailHog : http://localhost:8025
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Architecture backend
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Élément | Emplacement |
+|---|---|
+| Schéma SQL, RLS, RPC places, bucket | `supabase/migrations/` + `supabase/seed.sql` |
+| Clients Supabase (navigateur / serveur / service_role) | `src/lib/supabase/` |
+| E-mails (transport SMTP + templates) | `src/lib/mailer.ts`, `src/lib/emails.ts` |
+| Schémas Zod partagés client/serveur | `src/lib/schemas.ts` |
+| Routes formulaires | `src/app/api/rdv`, `api/event-registration`, `api/newsletter` |
+| Upload photos (Supabase Storage) | `src/app/api/upload` |
+| Gestion des administrateurs (invitations) | `src/app/api/admin/admins` |
+| Protection de session (Next 16 proxy) | `src/proxy.ts` |
+| Couche de données du front | `src/utils/storage.ts` (async, Supabase + Realtime) |
 
-## Learn More
+### Fonctionnement des invitations admin
 
-To learn more about Next.js, take a look at the following resources:
+Depuis l'onglet **Administrateurs** du dashboard, un admin saisit l'e-mail d'un
+collègue. Celui-ci reçoit un lien personnel (`/dashboard/definir-mot-de-passe`)
+où il choisit son propre mot de passe ; le compte n'est actif qu'après cette étape.
+Les invitations en attente peuvent être renvoyées ou révoquées.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Inscriptions aux événements
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+La RPC Postgres `register_for_event` décrémente les places de façon atomique :
+deux inscriptions simultanées sur la dernière place sont départagées par la base.
+Événement complet → réponse 409 affichée à l'utilisateur.
 
-## Deploy on Vercel
+## Passage en production
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Créer un projet sur [supabase.com](https://supabase.com) puis :
+   `npx supabase link --project-ref <ref>` et `npx supabase db push`.
+2. Renseigner dans l'hébergeur (Vercel...) les variables de `.env.example` :
+   clés du projet Supabase hébergé + SMTP réel (ex. Resend : `smtp.resend.com`,
+   port 465, user `resend`, mot de passe = clé API, domaine expéditeur vérifié).
+3. Créer le premier admin : `npm run admin:create -- <email> <mot_de_passe> "<nom>"`
+   (avec les variables de prod dans l'environnement).
+4. `NEXT_PUBLIC_SITE_URL` = URL publique du site (liens des e-mails).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Scripts
+
+| Commande | Rôle |
+|---|---|
+| `npm run dev` / `build` / `start` | Next.js |
+| `npm run db:start` / `db:stop` / `db:reset` | Stack Supabase locale |
+| `npm run mail:start` | MailHog |
+| `npm run admin:create -- <email> <mdp> [nom]` | Créer/réinitialiser un admin |

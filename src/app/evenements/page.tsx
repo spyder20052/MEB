@@ -24,15 +24,18 @@ export default function EvenementsPage() {
   const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const hidden = getHiddenPages();
-    if (hidden.includes("/evenements")) {
-      setIsPageHidden(true);
-    }
-    setEventList(getEvents());
+    getHiddenPages().then((hidden) => {
+      if (hidden.includes("/evenements")) {
+        setIsPageHidden(true);
+      }
+    });
+    getEvents().then(setEventList);
 
-    // Rafraîchit la page dès qu'un événement est modifié depuis le dashboard,
-    // que ce soit dans cet onglet ("meb_settings_updated") ou dans un autre ("storage").
-    const refresh = () => setEventList(getEvents());
+    // Rafraîchit la page dès qu'un événement est modifié depuis le dashboard
+    // ("meb_settings_updated" est relayé par Supabase Realtime pour tous les visiteurs).
+    const refresh = () => {
+      getEvents().then(setEventList);
+    };
     window.addEventListener("meb_settings_updated", refresh);
     window.addEventListener("storage", refresh);
     return () => {
@@ -295,22 +298,46 @@ export default function EvenementsPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: any = {};
     if (!formData.name.trim()) errors.name = "Le nom complet est requis.";
     if (!formData.whatsapp.trim()) errors.whatsapp = "Le numéro WhatsApp est requis.";
-    
+
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setFormErrors({});
+    try {
+      const res = await fetch("/api/event-registration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventNum: selectedEvent?.num,
+          name: formData.name,
+          whatsapp: formData.whatsapp,
+          email: formData.email,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setFormErrors({ submit: json.error || "L'inscription a échoué. Réessaie dans un instant." });
+        return;
+      }
+
+      // Succès confirmé par le serveur : la place est réservée et enregistrée.
       setSubmitSuccess(true);
-    }, 1200);
+      // Recharge les événements pour refléter le décompte des places.
+      getEvents().then(setEventList);
+    } catch {
+      setFormErrors({ submit: "Connexion impossible. Vérifie ton réseau puis réessaie." });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isPageHidden) {
@@ -850,6 +877,20 @@ export default function EvenementsPage() {
                         className="w-full h-12 px-4 rounded-xl border-2 border-[#060D03]/10 bg-transparent text-sm focus:outline-none focus:border-[#00B140] focus:ring-2 focus:ring-[#00B140]/10 transition-all"
                       />
                     </div>
+
+                    {formErrors.submit && (
+                      <div className="border border-[#E63946]/30 bg-[#E63946]/5 rounded-xl p-3">
+                        <p className="text-[#E63946] text-xs font-medium mb-1">{formErrors.submit}</p>
+                        <a
+                          href="https://wa.me/2290160007007?text=Bonjour%2C%20je%20souhaite%20m%27inscrire%20%C3%A0%20un%20%C3%A9v%C3%A9nement%20MEB."
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] font-heading font-bold text-[#060D03] underline hover:text-[#00B140] transition-colors"
+                        >
+                          Écris-nous directement sur WhatsApp →
+                        </a>
+                      </div>
+                    )}
 
                     <button
                       type="submit"
