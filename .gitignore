@@ -51,3 +51,6 @@ next-env.d.ts
 # scratch
 /scratch
 
+
+# brouillons du SQL Editor de Supabase Studio
+supabase/snippets/
