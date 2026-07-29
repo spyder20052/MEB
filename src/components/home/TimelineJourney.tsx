@@ -48,7 +48,7 @@ export const TimelineJourney = () => {
               transition={{ delay: 0.1 }}
               className="font-heading text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-white font-bold"
             >
-              De l'idée vers <br />
+              De l&apos;idée vers <br />
               <span className="font-light text-meb-gray-400">la réalisation.</span>
             </motion.h2>
           </div>
@@ -60,7 +60,7 @@ export const TimelineJourney = () => {
             className="lg:pb-4"
           >
             <p className="font-body text-sm md:text-lg text-meb-gray-400 max-w-sm border-l-2 border-meb-dark-border pl-4 md:pl-6 leading-relaxed">
-              Un accompagnement structuré et personnalisé, allant de l'évaluation initiale à l'exécution concrète sur le terrain.
+              Un accompagnement structuré et personnalisé, allant de l&apos;évaluation initiale à l&apos;exécution concrète sur le terrain.
             </p>
           </motion.div>
         </div>

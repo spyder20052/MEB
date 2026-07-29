@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, ArrowRight, Sparkle, FileText, ChartBar, PaperPlaneRight } from "@phosphor-icons/react";
-import { getProjects, getHiddenPages, ProjectItem } from "@/utils/storage";
+import { getProjects, ProjectItem } from "@/utils/storage";
+import { usePageHidden } from "@/hooks/usePageHidden";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -13,7 +14,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 export default function ProjetsPage() {
-  const [isPageHidden, setIsPageHidden] = useState(false);
+  const isPageHidden = usePageHidden("/projets");
   const [fannedProjects, setFannedProjects] = useState<ProjectItem[]>([]);
   const [originalCount, setOriginalCount] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -21,27 +22,27 @@ export default function ProjetsPage() {
   const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    getHiddenPages().then((hidden) => {
-      if (hidden.includes("/projets")) {
-        setIsPageHidden(true);
-      }
-    });
+    const load = () => {
+      getProjects().then((projects) => {
+        const active = projects.filter((p) => !p.isHidden);
+        setOriginalCount(active.length);
 
-    getProjects().then((projects) => {
-      const active = projects.filter((p) => !p.isHidden);
-      setOriginalCount(active.length);
-
-      if (active.length > 0) {
-        // Pad to at least 5 items to keep carousel slots filled
-        let padded = [...active];
-        while (padded.length < 5) {
-          padded = [...padded, ...active];
+        if (active.length > 0) {
+          // Pad to at least 5 items to keep carousel slots filled
+          let padded = [...active];
+          while (padded.length < 5) {
+            padded = [...padded, ...active];
+          }
+          setFannedProjects(padded);
+        } else {
+          setFannedProjects([]);
         }
-        setFannedProjects(padded);
-      } else {
-        setFannedProjects([]);
-      }
-    });
+      });
+    };
+    load();
+    // Répercute en direct les modifications faites depuis le dashboard.
+    window.addEventListener("meb_settings_updated", load);
+    return () => window.removeEventListener("meb_settings_updated", load);
   }, []);
 
   useEffect(() => {

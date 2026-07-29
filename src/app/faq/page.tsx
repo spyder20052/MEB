@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getHiddenPages } from "@/utils/storage";
+import { usePageHidden } from "@/hooks/usePageHidden";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -62,16 +62,9 @@ const FAQ_ITEMS = [
 ];
 
 export default function FaqPage() {
-  const [isPageHidden, setIsPageHidden] = useState(false);
+  const isPageHidden = usePageHidden("/faq");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    getHiddenPages().then((hidden) => {
-      if (hidden.includes("/faq")) {
-        setIsPageHidden(true);
-      }
-    });
-  }, []);
 
   if (isPageHidden) {
     return <PageHiddenFallback pageName="FAQ" />;

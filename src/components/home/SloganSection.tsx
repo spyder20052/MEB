@@ -35,7 +35,7 @@ export const SloganSection = () => {
                         transition={{ delay: 0.4, duration: 0.6 }}
                         className="font-mono text-xs md:text-sm font-bold tracking-[0.4em] uppercase text-meb-gray-400 mt-8"
                     >
-                        L'Écosystème Actif Du Business Béninois
+                        L&apos;Écosystème Actif Du Business Béninois
                     </motion.p>
                 </motion.div>
 

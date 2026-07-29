@@ -53,6 +53,53 @@ type TabId =
   | "admins"
   | "security";
 
+// ------------------------------------------------------------------
+// Helpers date/heure : l'admin manipule de vrais sélecteurs, le libellé
+// français affiché sur les cartes ("Jeudi 2 Juillet 2026") est généré.
+// ------------------------------------------------------------------
+
+// "2026-07-02" -> "Jeudi 2 Juillet 2026"
+const toFrenchDate = (ymd: string): string => {
+  if (!ymd) return "";
+  const formatted = new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${ymd}T12:00:00`));
+  return formatted.replace(/(^|\s)(\p{L})/gu, (m) => m.toUpperCase());
+};
+
+// ISO ("2026-07-02T09:00:00+01:00") -> "2026-07-02" pour <input type="date">
+const isoToYmd = (iso?: string): string => (iso && iso.length >= 10 ? iso.slice(0, 10) : "");
+
+// "Jeudi 5 Mars 2026" -> "2026-03-05" (pré-remplissage du sélecteur de récap)
+const FRENCH_MONTHS: Record<string, string> = {
+  janvier: "01", février: "02", fevrier: "02", mars: "03", avril: "04",
+  mai: "05", juin: "06", juillet: "07", août: "08", aout: "08",
+  septembre: "09", octobre: "10", novembre: "11", décembre: "12", decembre: "12",
+};
+const frenchDateToYmd = (value?: string): string => {
+  if (!value) return "";
+  const match = value.toLowerCase().match(/(\d{1,2})(?:er)?\s+([\p{L}]+)\s+(\d{4})/u);
+  if (!match) return "";
+  const month = FRENCH_MONTHS[match[2]];
+  if (!month) return "";
+  return `${match[3]}-${month}-${match[1].padStart(2, "0")}`;
+};
+
+// "09:00 - 13:00" -> ["09:00", "13:00"] pour les <input type="time">
+const parseTimes = (time?: string): [string, string] => {
+  const match = (time ?? "").match(/(\d{1,2})[:hH](\d{2})\s*[-–à]\s*(\d{1,2})[:hH](\d{2})/);
+  if (!match) return ["", ""];
+  return [
+    `${match[1].padStart(2, "0")}:${match[2]}`,
+    `${match[3].padStart(2, "0")}:${match[4]}`,
+  ];
+};
+const composeTime = (start: string, end: string): string =>
+  start && end ? `${start} - ${end}` : start || end || "";
+
 const PAGE_LIST = [
   { label: "Services", href: "/services" },
   { label: "Événements", href: "/evenements" },
@@ -93,8 +140,9 @@ export default function DashboardPage() {
     title: "",
     tag: "",
     templateStyle: "01" as "01" | "02" | "03" | "04" | "05",
-    dateStr: "",
-    time: "",
+    date: "", // "2026-07-02" — le libellé français est généré automatiquement
+    timeStart: "09:00",
+    timeEnd: "13:00",
     seats: 15,
     venue: "Ciné Concorde, Cotonou",
     desc: "",
@@ -229,6 +277,38 @@ export default function DashboardPage() {
     persistEvents(updated);
   };
 
+  // Sélecteur de date : met à jour la vraie date (tri, popup) ET le libellé affiché.
+  const handleEventDateChange = (index: number, ymd: string) => {
+    if (!ymd) return;
+    const updated = [...events];
+    const [start] = parseTimes(updated[index].time);
+    updated[index] = {
+      ...updated[index],
+      dateStr: toFrenchDate(ymd),
+      dateRaw: `${ymd}T${start || "09:00"}:00`,
+    };
+    persistEvents(updated);
+  };
+
+  // Sélecteurs d'heures : recompose "HH:MM - HH:MM" et synchronise dateRaw.
+  const handleEventTimeChange = (index: number, which: "start" | "end", value: string) => {
+    const updated = [...events];
+    const [start, end] = parseTimes(updated[index].time);
+    const nextStart = which === "start" ? value : start;
+    const nextEnd = which === "end" ? value : end;
+    updated[index] = {
+      ...updated[index],
+      time: composeTime(nextStart, nextEnd),
+      dateRaw: `${isoToYmd(updated[index].dateRaw) || new Date().toISOString().slice(0, 10)}T${nextStart || "09:00"}:00`,
+    };
+    persistEvents(updated);
+  };
+
+  const handleRecapDateChange = (index: number, ymd: string) => {
+    if (!ymd) return;
+    handleEventChange(index, "recapDateStr", toFrenchDate(ymd));
+  };
+
   // Envoie les photos vers /api/upload puis rattache les chemins retournés à l'événement.
   const handleUploadPhotos = async (index: number, fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
@@ -352,7 +432,7 @@ export default function DashboardPage() {
 
   const handleAddEvent = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEvent.title.trim() || !newEvent.dateStr.trim() || !newEvent.time.trim() || !newEvent.desc.trim()) {
+    if (!newEvent.title.trim() || !newEvent.date || !newEvent.timeStart || !newEvent.timeEnd || !newEvent.desc.trim()) {
       alert("Veuillez remplir tous les champs obligatoires de l'événement.");
       return;
     }
@@ -366,13 +446,14 @@ export default function DashboardPage() {
       title: newEvent.title,
       tag: newEvent.tag || "Événement Spécial",
       templateStyle: newEvent.templateStyle,
-      dateStr: newEvent.dateStr,
+      dateStr: toFrenchDate(newEvent.date),
       recurringStr: "Événement Spécial",
-      time: newEvent.time,
+      time: composeTime(newEvent.timeStart, newEvent.timeEnd),
       seats: newEvent.seats,
       venue: newEvent.venue,
       desc: newEvent.desc,
-      dateRaw: new Date().toISOString(),
+      // Vraie date de l'événement : sert au tri et au popup d'accueil.
+      dateRaw: `${newEvent.date}T${newEvent.timeStart}:00`,
       isHidden: false,
       cardPhoto: newEvent.photos[0],
     };
@@ -384,8 +465,9 @@ export default function DashboardPage() {
       title: "",
       tag: "",
       templateStyle: "01",
-      dateStr: "",
-      time: "",
+      date: "",
+      timeStart: "09:00",
+      timeEnd: "13:00",
       seats: 15,
       venue: "Ciné Concorde, Cotonou",
       desc: "",
@@ -860,27 +942,39 @@ export default function DashboardPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
                         <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
-                          Date Exacte *
+                          Date de l&apos;événement *
                         </label>
                         <input
-                          type="text"
-                          value={newEvent.dateStr}
-                          onChange={(e) => setNewEvent({ ...newEvent, dateStr: e.target.value })}
-                          placeholder="ex: Jeudi 2 Juillet 2026"
+                          type="date"
+                          value={newEvent.date}
+                          onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
                           className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none text-[#060D03]"
                         />
+                        {newEvent.date && (
+                          <p className="font-mono text-[9px] text-[#00B140] mt-1">
+                            Affiché : {toFrenchDate(newEvent.date)}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
-                          Horaires *
+                          Horaires (début — fin) *
                         </label>
-                        <input
-                          type="text"
-                          value={newEvent.time}
-                          onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
-                          placeholder="ex: 18:30 - 21:30"
-                          className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none text-[#060D03]"
-                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={newEvent.timeStart}
+                            onChange={(e) => setNewEvent({ ...newEvent, timeStart: e.target.value })}
+                            className="w-full h-10 px-2 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none text-[#060D03]"
+                          />
+                          <span className="text-[#060D03]/40 text-xs">—</span>
+                          <input
+                            type="time"
+                            value={newEvent.timeEnd}
+                            onChange={(e) => setNewEvent({ ...newEvent, timeEnd: e.target.value })}
+                            className="w-full h-10 px-2 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none text-[#060D03]"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
@@ -888,6 +982,7 @@ export default function DashboardPage() {
                         </label>
                         <input
                           type="number"
+                          min={0}
                           value={newEvent.seats}
                           onChange={(e) => setNewEvent({ ...newEvent, seats: parseInt(e.target.value) || 0 })}
                           className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none text-[#060D03]"
@@ -1215,15 +1310,13 @@ export default function DashboardPage() {
                                 <span>{event.isHidden ? "Rendre visible" : "Masquer l'event"}</span>
                               </button>
 
-                              {isCustom && (
-                                <button
-                                  onClick={() => handleDeleteEvent(event.num)}
-                                  className="px-3 py-1.5 rounded-lg bg-[#E63946]/10 border border-[#E63946]/20 text-[#E63946] hover:bg-[#E63946]/20 font-mono text-[9px] uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
-                                >
-                                  <Trash size={12} weight="bold" />
-                                  <span>Supprimer</span>
-                                </button>
-                              )}
+                              <button
+                                onClick={() => handleDeleteEvent(event.num)}
+                                className="px-3 py-1.5 rounded-lg bg-[#E63946]/10 border border-[#E63946]/20 text-[#E63946] hover:bg-[#E63946]/20 font-mono text-[9px] uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                              >
+                                <Trash size={12} weight="bold" />
+                                <span>Supprimer</span>
+                              </button>
                             </div>
                           </div>
 
@@ -1243,30 +1336,43 @@ export default function DashboardPage() {
 
                             <div>
                               <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
-                                Date Exacte (Affichée sur la carte)
+                                Date de l&apos;événement
                               </label>
                               <input
-                                type="text"
-                                value={event.dateStr}
+                                type="date"
+                                value={isoToYmd(event.dateRaw)}
                                 disabled={event.isHidden}
-                                onChange={(e) => handleEventChange(idx, "dateStr", e.target.value)}
-                                placeholder="ex: Samedi 27 Juin 2026"
+                                onChange={(e) => handleEventDateChange(idx, e.target.value)}
                                 className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none transition-all disabled:opacity-40 text-[#060D03]"
                               />
+                              {event.dateStr && (
+                                <p className="font-mono text-[9px] text-[#00B140] mt-1">
+                                  Affiché : {event.dateStr}
+                                </p>
+                              )}
                             </div>
 
                             <div>
                               <label className="block font-heading font-bold text-[9px] uppercase tracking-widest text-[#060D03]/50 mb-1">
-                                Horaires
+                                Horaires (début — fin)
                               </label>
-                              <input
-                                type="text"
-                                value={event.time}
-                                disabled={event.isHidden}
-                                onChange={(e) => handleEventChange(idx, "time", e.target.value)}
-                                placeholder="15:00 - 18:00"
-                                className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none transition-all disabled:opacity-40 text-[#060D03]"
-                              />
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="time"
+                                  value={parseTimes(event.time)[0]}
+                                  disabled={event.isHidden}
+                                  onChange={(e) => handleEventTimeChange(idx, "start", e.target.value)}
+                                  className="w-full h-10 px-2 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none transition-all disabled:opacity-40 text-[#060D03]"
+                                />
+                                <span className="text-[#060D03]/40 text-xs">—</span>
+                                <input
+                                  type="time"
+                                  value={parseTimes(event.time)[1]}
+                                  disabled={event.isHidden}
+                                  onChange={(e) => handleEventTimeChange(idx, "end", e.target.value)}
+                                  className="w-full h-10 px-2 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none transition-all disabled:opacity-40 text-[#060D03]"
+                                />
+                              </div>
                             </div>
 
                             <div>
@@ -1403,12 +1509,16 @@ export default function DashboardPage() {
                                   Date de l&apos;édition passée
                                 </label>
                                 <input
-                                  type="text"
-                                  value={event.recapDateStr || ""}
-                                  onChange={(e) => handleEventChange(idx, "recapDateStr", e.target.value)}
-                                  placeholder="ex: Jeudi 5 Mars 2026"
+                                  type="date"
+                                  value={frenchDateToYmd(event.recapDateStr)}
+                                  onChange={(e) => handleRecapDateChange(idx, e.target.value)}
                                   className="w-full h-10 px-3 bg-white border border-[#060D03]/15 focus:border-[#00B140] rounded-xl text-xs focus:outline-none transition-all text-[#060D03]"
                                 />
+                                {event.recapDateStr && (
+                                  <p className="font-mono text-[9px] text-[#00B140] mt-1">
+                                    Affiché : {event.recapDateStr}
+                                  </p>
+                                )}
                               </div>
 
                               <div>

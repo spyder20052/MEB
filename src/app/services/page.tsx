@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { getHiddenPages } from "@/utils/storage";
+import { usePageHidden } from "@/hooks/usePageHidden";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
 import {
   ArrowUpRightIcon,
@@ -82,15 +82,8 @@ const process = [
 ];
 
 export default function ServicesPage() {
-  const [isPageHidden, setIsPageHidden] = useState(false);
+  const isPageHidden = usePageHidden("/services");
 
-  useEffect(() => {
-    getHiddenPages().then((hidden) => {
-      if (hidden.includes("/services")) {
-        setIsPageHidden(true);
-      }
-    });
-  }, []);
 
   if (isPageHidden) {
     return <PageHiddenFallback pageName="Services" />;

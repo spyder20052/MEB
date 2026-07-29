@@ -5,30 +5,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, ArrowDownLeft, X, Check, Calendar, MapPin } from "@phosphor-icons/react";
-import { getEvents, getHiddenPages, EventItem, DEFAULT_EVENTS } from "@/utils/storage";
+import { getEvents, EventItem, DEFAULT_EVENTS } from "@/utils/storage";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
+import { usePageHidden } from "@/hooks/usePageHidden";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function EvenementsPage() {
-  const [isPageHidden, setIsPageHidden] = useState(false);
+  const isPageHidden = usePageHidden("/evenements");
   const [eventList, setEventList] = useState<EventItem[]>(DEFAULT_EVENTS);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [formData, setFormData] = useState({ name: "", whatsapp: "", email: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [formErrors, setFormErrors] = useState<any>({});
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    getHiddenPages().then((hidden) => {
-      if (hidden.includes("/evenements")) {
-        setIsPageHidden(true);
-      }
-    });
     getEvents().then(setEventList);
 
     // Rafraîchit la page dès qu'un événement est modifié depuis le dashboard
@@ -49,7 +45,7 @@ export default function EvenementsPage() {
   const e3 = eventList.find(e => e.num === "03");
   const e4 = eventList.find(e => e.num === "04");
 
-  const otherEvents = eventList.filter(e => !["01", "02", "03", "04"].includes(e.num));
+  const otherEvents = eventList.filter(e => !["01", "02", "03", "04"].includes(e.num) && !e.isHidden);
 
   // Éditions passées dont le récapitulatif a été publié depuis le dashboard
   const recapEvents = eventList.filter(e => e.recapPublished && !e.isHidden);
@@ -277,7 +273,7 @@ export default function EvenementsPage() {
     };
   }, []);
 
-  const openModal = (event: any) => {
+  const openModal = (event: EventItem) => {
     setSelectedEvent(event);
     setFormData({ name: "", whatsapp: "", email: "" });
     setFormErrors({});
@@ -294,13 +290,13 @@ export default function EvenementsPage() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (formErrors[name]) {
-      setFormErrors((prev: any) => ({ ...prev, [name]: "" }));
+      setFormErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const errors: any = {};
+    const errors: Record<string, string> = {};
     if (!formData.name.trim()) errors.name = "Le nom complet est requis.";
     if (!formData.whatsapp.trim()) errors.whatsapp = "Le numéro WhatsApp est requis.";
 
@@ -809,7 +805,7 @@ export default function EvenementsPage() {
                     <div className="text-xs font-mono text-[#060D03]/70 flex flex-col gap-1.5">
                       <div className="flex items-center gap-2">
                         <Calendar size={14} weight="bold" className="text-[#00B140]" />
-                        <span>{selectedEvent.dateStr || selectedEvent.date} ({selectedEvent.time})</span>
+                        <span>{selectedEvent.dateStr} ({selectedEvent.time})</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <MapPin size={14} weight="bold" className="text-[#00B140]" />

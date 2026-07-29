@@ -6,23 +6,16 @@ import Link from "next/link";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { getHiddenPages } from "@/utils/storage";
+import { usePageHidden } from "@/hooks/usePageHidden";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function CollaborateursPage() {
-  const [isPageHidden, setIsPageHidden] = useState(false);
+  const isPageHidden = usePageHidden("/collaborateurs");
   const trackRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
 
-  useEffect(() => {
-    getHiddenPages().then((hidden) => {
-      if (hidden.includes("/collaborateurs")) {
-        setIsPageHidden(true);
-      }
-    });
-  }, []);
 
   const textContent = "COLLABORER AVEC LES INSTITUTIONS ET ENTREPRISES PARTENAIRES POUR CRÉER DES OPPORTUNITÉS DURABLES ET UN IMPACT CONCRET POUR NOS ENTREPRENEURS.";
   const words = textContent.split(" ");

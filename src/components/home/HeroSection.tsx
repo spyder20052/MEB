@@ -26,11 +26,11 @@ export const HeroSection = () => {
           className="flex flex-col items-center text-center max-w-4xl mx-auto mb-12 sm:mb-16"
         >
           <h1 className="font-heading text-[48px] sm:text-[64px] md:text-[80px] lg:text-[84px] leading-[1.05] tracking-tight text-white mb-6">
-            <span className="font-bold">L'Écosystème Actif Du</span> <br />
+            <span className="font-bold">L&apos;Écosystème Actif Du</span> <br />
             <span className="font-light">Business Béninois</span>
           </h1>
           <p className="font-body text-[14px] md:text-[15px] text-meb-gray-400 max-w-2xl font-light leading-relaxed">
-            Centre d'innovation d'avant-garde, concentré sur les solutions d'accompagnement et la technologie
+            Centre d&apos;innovation d&apos;avant-garde, concentré sur les solutions d&apos;accompagnement et la technologie
             qui dynamisent une croissance durable et connectée pour les PME.
           </p>
         </motion.div>

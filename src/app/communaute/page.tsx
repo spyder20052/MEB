@@ -6,7 +6,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { getHiddenPages } from "@/utils/storage";
+import { usePageHidden } from "@/hooks/usePageHidden";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -131,17 +131,10 @@ const pathAccents = [
 ];
 
 export default function CommunautePage() {
-  const [isPageHidden, setIsPageHidden] = useState(false);
+  const isPageHidden = usePageHidden("/communaute");
   const [scale, setScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    getHiddenPages().then((hidden) => {
-      if (hidden.includes("/communaute")) {
-        setIsPageHidden(true);
-      }
-    });
-  }, []);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sectionHeaderRef = useRef<HTMLDivElement>(null);
   const heroTitleRef = useRef<HTMLDivElement>(null);
@@ -491,7 +484,7 @@ export default function CommunautePage() {
               Nos Formules de Membership
             </h2>
             <p className="font-body text-sm sm:text-base text-[#060D03]/60 max-w-2xl mx-auto leading-relaxed">
-              Que tu sois un jeune porteur d'idée, un entrepreneur établi, une grande entreprise ou un partenaire institutionnel, il y a une place pour toi à la MEB.
+              Que tu sois un jeune porteur d&apos;idée, un entrepreneur établi, une grande entreprise ou un partenaire institutionnel, il y a une place pour toi à la MEB.
             </p>
           </div>
 
@@ -647,7 +640,7 @@ export default function CommunautePage() {
 
               {/* Description */}
               <p className="font-body text-sm text-[#060D03]/60 leading-relaxed mb-8 lg:mb-4 max-w-xl">
-                Que tu souhaites rejoindre la Communauté en tant que membre actif pour propulser ton projet, ou devenir sponsor/partenaire institutionnel pour financer l'écosystème, contacte-nous dès aujourd'hui.
+                Que tu souhaites rejoindre la Communauté en tant que membre actif pour propulser ton projet, ou devenir sponsor/partenaire institutionnel pour financer l&apos;écosystème, contacte-nous dès aujourd&apos;hui.
               </p>
             </div>
 

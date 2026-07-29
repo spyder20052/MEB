@@ -12,19 +12,21 @@ import { motion } from "framer-motion";
 import { getHiddenPages } from "@/utils/storage";
 import { usePathname } from "next/navigation";
 
+// Les sous-pages services/événements n'existent pas (encore) :
+// tous les liens pointent vers les pages réelles pour éviter les 404.
 const links = {
   services: [
-    { label: "Positionnement", href: "/services/positionnement" },
-    { label: "Orientation", href: "/services/orientation" },
-    { label: "Assistance RDV", href: "/services/assistance-rdv" },
-    { label: "Infos sectorielles", href: "/services/informations" },
-    { label: "Analyse sectorielle", href: "/services/analyse-sectorielle" },
+    { label: "Positionnement", href: "/services" },
+    { label: "Orientation", href: "/services" },
+    { label: "Assistance RDV", href: "/services" },
+    { label: "Infos sectorielles", href: "/services" },
+    { label: "Analyse sectorielle", href: "/services" },
   ],
   evenements: [
-    { label: "Journées Portes Ouvertes", href: "/evenements/jpo" },
-    { label: "Petits-Déj'", href: "/evenements/petit-dej" },
-    { label: "Afterworks", href: "/evenements/afterworks" },
-    { label: "Mastermind", href: "/evenements/mastermind" },
+    { label: "Journées Portes Ouvertes", href: "/evenements" },
+    { label: "Petits-Déj'", href: "/evenements" },
+    { label: "Afterworks", href: "/evenements" },
+    { label: "Mastermind", href: "/evenements" },
   ],
   projets: [
     { label: "Projets membres", href: "/projets" },
@@ -165,7 +167,7 @@ export const Footer = () => {
                 </h4>
                 <ul className="flex flex-col gap-3">
                   {col.items.map((link) => (
-                    <li key={link.href}>
+                    <li key={link.label}>
                       <Link
                         href={link.href}
                         className="font-heading font-medium text-[15px] tracking-tight text-white/60 hover:text-white hover:translate-x-1 transition-all inline-block duration-300"

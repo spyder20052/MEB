@@ -46,7 +46,7 @@ export const SolutionPillars = () => {
               avec nos clients pour trouver les <span className="font-bold">meilleures solutions</span>.
             </h3>
             <p className="relative z-10 font-body text-sm md:text-base font-medium text-meb-gray-500 max-w-md border-l-2 border-meb-green pl-4">
-              Notre but n'est pas seulement de proposer des services, mais de bâtir des relations durables au cœur de l'écosystème béninois.
+              Notre but n&apos;est pas seulement de proposer des services, mais de bâtir des relations durables au cœur de l&apos;écosystème béninois.
             </p>
           </div>
 
@@ -62,7 +62,7 @@ export const SolutionPillars = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-meb-dark via-meb-dark/40 to-transparent opacity-90 group-hover:opacity-60 transition-opacity duration-500" />
 
             <div className="absolute inset-0 p-6 lg:p-8 flex flex-col justify-end z-10">
-              <h4 className="font-heading font-bold text-xl md:text-2xl text-white mb-2">Consultation<br />D'Expert</h4>
+              <h4 className="font-heading font-bold text-xl md:text-2xl text-white mb-2">Consultation<br />D&apos;Expert</h4>
               <p className="font-body text-sm text-meb-gray-300 font-light max-h-0 opacity-0 group-hover:max-h-24 group-hover:opacity-100 transition-all duration-500 overflow-hidden">
                 Nos conseillers hautement qualifiés travaillent main dans la main avec vous.
               </p>

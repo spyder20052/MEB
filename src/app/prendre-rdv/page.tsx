@@ -6,13 +6,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { CaretDown, Check } from "@phosphor-icons/react";
 import gsap from "gsap";
-import { getHiddenPages } from "@/utils/storage";
+import { usePageHidden } from "@/hooks/usePageHidden";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
 // Schéma Zod partagé avec la route API : mêmes règles client et serveur.
 import { rdvSchema, type RdvFormData } from "@/lib/schemas";
 
 export default function PrendreRdvPage() {
-  const [isPageHidden, setIsPageHidden] = useState(false);
+  const isPageHidden = usePageHidden("/prendre-rdv");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -21,13 +21,6 @@ export default function PrendreRdvPage() {
   // Honeypot anti-spam : champ invisible pour un humain, rempli par les bots.
   const honeypotRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    getHiddenPages().then((hidden) => {
-      if (hidden.includes("/prendre-rdv")) {
-        setIsPageHidden(true);
-      }
-    });
-  }, []);
 
   useEffect(() => {
     if (!titleRef.current || !contentRef.current) return;
