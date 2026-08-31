@@ -10,7 +10,12 @@ export const metadata: Metadata = {
   description:
     "Le premier hub entrepreneurial du Bénin. Conseil, communauté, connexions pour entrepreneurs, artisans et PME à Cotonou.",
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2300B140'/><text y='72' x='50' text-anchor='middle' font-size='62' font-family='Georgia,serif' font-weight='900' fill='%23060D03'>M</text></svg>",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
 };
 
