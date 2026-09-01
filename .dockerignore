@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+build
+coverage
+.git
+.github
+.vercel
+.env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+.DS_Store
+scratch
+supabase/.temp
+supabase/.branches

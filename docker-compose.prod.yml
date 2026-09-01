@@ -1,0 +1,12 @@
+# Déploiement de production.
+# Utilisé sur le serveur par le workflow GitHub Actions (.github/workflows/deploy.yml).
+# L'image est buildée en CI et poussée sur GHCR — ce fichier ne fait que la tirer et la lancer.
+services:
+  app:
+    image: ghcr.io/spyder20052/meb:latest
+    container_name: meb-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - .env.production
