@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import { EventPhoto } from "@/components/ui/EventPhoto";
 import { ArrowUpRight, ArrowDownLeft, X, Check, Calendar, MapPin } from "@phosphor-icons/react";
 import { getEvents, EventItem, DEFAULT_EVENTS } from "@/utils/storage";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
@@ -67,11 +68,11 @@ export default function EvenementsPage() {
         >
           {photo && (
             <div className="absolute inset-0 z-0">
-              <Image
+              <EventPhoto
                 src={photo}
                 alt=""
-                aria-hidden="true"
-                fill
+                decorative
+                fallback="none"
                 sizes="(max-width: 768px) 100vw, 400px"
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -752,13 +753,12 @@ export default function EvenementsPage() {
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         {(event.recapPhotos || []).map((src, i) => (
                           <div
-                            key={i}
+                            key={`${src}-${i}`}
                             className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#F5F5F5] border border-[#060D03]/8 group"
                           >
-                            <Image
+                            <EventPhoto
                               src={src}
-                              alt={`${event.title} — photo ${i + 1} de l'édition ${event.recapDateStr || "passée"}`}
-                              fill
+                              alt={`${event.title}, photo ${i + 1} de l'édition ${event.recapDateStr || "passée"}`}
                               sizes="(max-width: 768px) 50vw, (max-width: 1240px) 33vw, 300px"
                               className="object-cover transition-transform duration-500 group-hover:scale-105"
                             />

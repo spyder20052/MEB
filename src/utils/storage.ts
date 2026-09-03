@@ -3,6 +3,7 @@
 // la réécriture des composants, cf. BACKEND.md §4 et §10.
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { resolvePhotoUrl, resolvePhotoUrls } from "@/lib/photos";
 
 export interface EventItem {
   num: string; // "01" (JPO), "02" (Petits-Dej), "03" (Mastermind), "04" (Afterwork) or dynamic ID
@@ -195,10 +196,11 @@ const eventFromRow = (row: EventRow): EventItem => ({
   dateRaw: row.date_raw,
   isHidden: row.is_hidden,
   templateStyle: (row.template_style as EventItem["templateStyle"]) ?? "01",
-  cardPhoto: row.card_photo ?? undefined,
+  // Les URLs Storage sont recollées sur l'hôte Supabase courant (cf. src/lib/photos.ts).
+  cardPhoto: row.card_photo ? resolvePhotoUrl(row.card_photo) : undefined,
   recapPublished: row.recap_published,
   recapText: row.recap_text ?? undefined,
-  recapPhotos: row.recap_photos ?? [],
+  recapPhotos: resolvePhotoUrls(row.recap_photos),
   recapAttendees: row.recap_attendees ?? undefined,
   recapDateStr: row.recap_date_str ?? undefined,
 });

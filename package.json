@@ -11,6 +11,7 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "mail:start": "docker compose up -d mailhog",
+    "photos:check": "node --env-file-if-exists=.env.local scripts/check-photos.mjs",
     "admin:create": "node scripts/create-admin.mjs"
   },
   "dependencies": {

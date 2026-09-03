@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import { EventPhoto } from "@/components/ui/EventPhoto";
 import {
   Gear,
   Calendar,
@@ -1251,12 +1252,13 @@ export default function DashboardPage() {
                               <div className="w-full bg-[#0D1B2A] rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[220px] relative overflow-hidden text-white border border-transparent shadow-lg">
                                 {(event.cardPhoto || (event.recapPhotos || [])[0]) ? (
                                   <div className="absolute inset-0 z-0">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
+                                    <EventPhoto
                                       src={event.cardPhoto || (event.recapPhotos || [])[0]}
                                       alt=""
-                                      aria-hidden="true"
-                                      className="w-full h-full object-cover"
+                                      decorative
+                                      fallback="none"
+                                      unoptimized
+                                      className="object-cover"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/35" />
                                   </div>
@@ -1612,11 +1614,11 @@ export default function DashboardPage() {
                                     key={`${src}-${i}`}
                                     className="relative w-24 h-24 rounded-xl overflow-hidden border border-[#060D03]/10 bg-[#F5F5F5] group"
                                   >
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
+                                    <EventPhoto
                                       src={src}
                                       alt={`Aperçu photo ${i + 1} de ${event.title}`}
-                                      className="w-full h-full object-cover"
+                                      unoptimized
+                                      className="object-cover"
                                     />
                                     <button
                                       type="button"
