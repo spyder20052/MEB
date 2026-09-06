@@ -15,17 +15,15 @@ export const ServicesPreview = () => {
             <div className="mb-12 md:mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
                <div className="max-w-2xl">
                   <motion.span
-                     initial={{ opacity: 0, y: 20 }}
-                     whileInView={{ opacity: 1, y: 0 }}
-                     viewport={{ once: true }}
+                     initial={false}
+                     animate={{ opacity: 1, y: 0 }}
                      className="font-heading text-sm font-bold tracking-widest uppercase text-meb-green mb-4 block"
                   >
                      Notre Expertise
                   </motion.span>
                   <motion.h2
-                     initial={{ opacity: 0, y: 30 }}
-                     whileInView={{ opacity: 1, y: 0 }}
-                     viewport={{ once: true }}
+                     initial={false}
+                     animate={{ opacity: 1, y: 0 }}
                      transition={{ delay: 0.1 }}
                      className="font-heading text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-meb-dark font-bold"
                   >
@@ -34,10 +32,9 @@ export const ServicesPreview = () => {
                   </motion.h2>
                </div>
                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 }}
+                  initial={false}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
                   className="md:pb-4"
                >
                   <p className="font-body text-sm md:text-lg text-meb-gray-500 max-w-sm border-l-2 border-meb-gray-300 pl-4 md:pl-6 leading-relaxed">
@@ -51,10 +48,9 @@ export const ServicesPreview = () => {
 
                {/* Card 1: Positionnement Stratégique (Dark / Wide / Col Span 2) */}
                <motion.div
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.6 }}
+                  initial={false}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
                   className="md:col-span-2 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-[#080E05] border border-meb-dark-border transition-colors duration-500 hover:border-meb-green min-h-[350px] md:min-h-[420px] p-8 md:p-12 flex flex-col justify-end"
                >
                   {/* Background Image full width */}
@@ -62,6 +58,7 @@ export const ServicesPreview = () => {
                      src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=1200"
                      alt="Création et Structuration en équipe"
                      fill
+                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                      className="object-cover opacity-30 grayscale group-hover:grayscale-0 group-hover:opacity-40 transition-all duration-700 hover:scale-105 pointer-events-none"
                   />
                   {/* Cinematic Gradient */}
@@ -89,10 +86,9 @@ export const ServicesPreview = () => {
 
                {/* Card 2: Orientation & Conseil (Green / Tall / Col Span 1) */}
                <motion.div
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.6, delay: 0.15 }}
+                  initial={false}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.15 }}
                   className="md:col-span-1 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-meb-green min-h-[350px] md:min-h-[420px] p-8 md:p-10 flex flex-col"
                >
                   {/* Tech lines decoration */}
@@ -121,10 +117,9 @@ export const ServicesPreview = () => {
 
                {/* Card 3: CTA Compact (White / Col Span 1) */}
                <motion.div
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.6, delay: 0.3 }}
+                  initial={false}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
                   className="md:col-span-1 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-white border border-meb-gray-200 hover:bg-meb-gray-50 transition-colors duration-500 min-h-[300px] md:min-h-[420px] p-8 md:p-10 flex flex-col justify-between"
                >
                   <div className="absolute -top-10 -right-10 w-40 h-40 bg-meb-green/10 rounded-full blur-[40px] group-hover:bg-meb-green/20 transition-all duration-500 pointer-events-none" />
@@ -145,17 +140,17 @@ export const ServicesPreview = () => {
 
                {/* Card 4: Assistance RDV (Dark Photo / Wide / Col Span 2) */}
                <motion.div
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.6, delay: 0.45 }}
+                  initial={false}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
                   className="md:col-span-2 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-meb-dark border border-meb-dark-border transition-colors duration-500 hover:border-white/20 min-h-[350px] md:min-h-[420px] p-8 md:p-12 flex flex-col justify-end"
                >
                   {/* Background Image right aligned */}
                   <Image
-                     src="/images/journey/Image col.png"
+                     src="/images/journey/Image col.jpg"
                      alt="Croissance et Hub MEB"
                      fill
+                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                      className="object-cover opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-70 transition-all duration-700 hover:scale-[1.02] pointer-events-none"
                      style={{ objectPosition: 'center top' }}
                   />

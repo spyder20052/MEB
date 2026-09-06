@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { EventPhoto } from "@/components/ui/EventPhoto";
-import { ArrowUpRight, ArrowDownLeft, X, Check, Calendar, MapPin } from "@phosphor-icons/react";
+import { ArrowUpRight, ArrowDownLeft, X, Check, Calendar, MapPin, Camera, CaretDown } from "@phosphor-icons/react";
 import { getEvents, EventItem, DEFAULT_EVENTS } from "@/utils/storage";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
 import { usePageHidden } from "@/hooks/usePageHidden";
@@ -23,6 +23,8 @@ export default function EvenementsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  // Recap deplie sous la carte de l'evenement (null = aucun)
+  const [openRecap, setOpenRecap] = useState<string | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,12 +48,132 @@ export default function EvenementsPage() {
   const e3 = eventList.find(e => e.num === "03");
   const e4 = eventList.find(e => e.num === "04");
 
-  const otherEvents = eventList.filter(e => !["01", "02", "03", "04"].includes(e.num) && !e.isHidden);
-
-  // Éditions passées dont le récapitulatif a été publié depuis le dashboard
-  const recapEvents = eventList.filter(e => e.recapPublished && !e.isHidden);
-
+  /**
+   * Enveloppe une carte d'evenement : si l'edition est passee et que son
+   * recapitulatif est publie, un bouton "Voir le recap" apparait sous la
+   * carte et deplie le contenu sur place, sans section separee en bas de page.
+   */
   const renderEventCard = (event: EventItem) => {
+    const hasRecap = event.recapPublished && !event.isHidden;
+    if (!hasRecap) return renderEventCardInner(event);
+
+    const isOpen = openRecap === event.num;
+    const photos = event.recapPhotos || [];
+
+    return (
+      <div key={`wrap-${event.num}`} className="flex flex-col">
+        {renderEventCardInner(event)}
+
+        <button
+          type="button"
+          onClick={() => setOpenRecap(isOpen ? null : event.num)}
+          aria-expanded={isOpen}
+          className="mt-3 w-full flex items-center justify-between gap-3 rounded-full border border-[#00B140]/35 bg-[#E8F5EE] px-5 py-3 font-mono text-[10px] font-bold uppercase tracking-widest text-[#00713A] transition-colors hover:bg-[#00B140] hover:text-white"
+        >
+          <span className="flex items-center gap-2">
+            <Camera size={14} weight="bold" />
+            {isOpen ? "Masquer le récap" : "Voir le récap"}
+          </span>
+          <span className="flex items-center gap-2 opacity-80">
+            {event.recapDateStr}
+            <CaretDown
+              size={14}
+              weight="bold"
+              className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+            />
+          </span>
+        </button>
+
+        <AnimatePresence initial={false}>
+          {isOpen && (
+            <motion.div
+              key={`recap-panel-${event.num}`}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="overflow-hidden"
+            >
+              <div className="mt-3 rounded-[1.5rem] border border-[#060D03]/10 bg-white p-6 text-[#060D03]">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[10px] uppercase tracking-wider text-[#060D03]/55 mb-4">
+                  {event.recapDateStr && (
+                    <span className="flex items-center gap-1.5">
+                      <Calendar size={13} weight="bold" className="text-[#00B140]" />
+                      {event.recapDateStr}
+                    </span>
+                  )}
+                  {event.venue && (
+                    <span className="flex items-center gap-1.5">
+                      <MapPin size={13} weight="bold" className="text-[#00B140]" />
+                      {event.venue}
+                    </span>
+                  )}
+                  {typeof event.recapAttendees === "number" && event.recapAttendees > 0 && (
+                    <span className="flex items-center gap-1.5 font-bold text-[#00B140]">
+                      {event.recapAttendees} participants
+                    </span>
+                  )}
+                </div>
+
+                {event.recapText && (
+                  <p className="font-body text-sm text-[#555555] leading-relaxed whitespace-pre-line mb-5">
+                    {event.recapText}
+                  </p>
+                )}
+
+                {photos.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {photos.map((src, i) => (
+                      <div
+                        key={i}
+                        className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#F5F5F5] border border-[#060D03]/8"
+                      >
+                        <Image
+                          src={src}
+                          alt={`${event.title}, photo ${i + 1} de l'édition ${event.recapDateStr || "passée"}`}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 300px"
+                          className="object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
+  /**
+   * Un evenement n'est plus "a venir" des lors que son recapitulatif est
+   * publie OU que sa date est passee. Sans cette regle, une edition de
+   * juin restait affichee comme prochaine en septembre.
+   */
+  const isPastEvent = (e: EventItem) => {
+    if (e.recapPublished) return true;
+    if (!e.dateRaw) return false;
+    const d = new Date(e.dateRaw);
+    if (Number.isNaN(d.getTime())) return false;
+    // Comparaison a la journee : un evenement du jour reste "a venir".
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return d < today;
+  };
+
+  const isUpcoming = (e: EventItem | undefined) =>
+    !!e && !e.isHidden && !isPastEvent(e);
+
+  const otherEvents = eventList.filter(
+    e => !["01", "02", "03", "04"].includes(e.num) && !e.isHidden && !isPastEvent(e)
+  );
+
+  // Editions passees : affichees a part, avec leur bouton recap.
+  const pastEvents = eventList.filter(e => !e.isHidden && isPastEvent(e));
+
+  const renderEventCardInner = (event: EventItem) => {
     const style = event.templateStyle || "01";
 
     // Template 05 : la photo occupe toute la carte, le texte se pose par-dessus.
@@ -251,25 +373,12 @@ export default function EvenementsPage() {
   useEffect(() => {
     if (!headerRef.current) return;
 
+    // Animation d'apparition au scroll retiree : le texte etait masque
+    // jusqu'au declenchement, ce qui provoquait des a-coups.
     const lines = headerRef.current.querySelectorAll(".reveal-line");
-
-    gsap.set(lines, { y: "105%", opacity: 0 });
-
-    const animation = gsap.to(lines, {
-      y: "0%",
-      opacity: 1,
-      duration: 1.2,
-      stagger: 0.15,
-      ease: "power4.out",
-      scrollTrigger: {
-        trigger: headerRef.current,
-        start: "top 85%",
-        toggleActions: "play none none none",
-      },
-    });
+    gsap.set(lines, { y: "0%", opacity: 1 });
 
     return () => {
-      animation.kill();
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
   }, []);
@@ -354,12 +463,12 @@ export default function EvenementsPage() {
               <motion.h1 
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
                 className="font-heading font-light text-[11vw] sm:text-[9vw] lg:text-[7vw] leading-[0.95] tracking-tighter text-[#060D03] uppercase relative"
               >
                 AGENDA <br />
                 <span className="font-extrabold">MEB</span>
-                <span className="font-mono text-xl sm:text-2xl lg:text-3xl font-light align-super ml-2">
+                <span className="font-mono text-xl sm:text-2xl lg:text-3xl font-light align-super ml-2 text-[#00B140]">
                   (01)
                 </span>
               </motion.h1>
@@ -371,7 +480,7 @@ export default function EvenementsPage() {
                 animate={{ scale: 1, rotate: 0 }}
                 whileHover={{ scale: 1.08, rotate: 5 }}
                 whileTap={{ scale: 0.92 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
                 className="absolute right-[5%] top-[60%] lg:right-[15%] lg:top-[50%] w-28 h-28 sm:w-36 sm:h-36 rounded-full border border-[#060D03] bg-white flex flex-col items-center justify-center cursor-pointer group hover:bg-[#060D03] hover:text-white transition-all duration-500 shadow-md"
               >
                 <ArrowUpRight size={28} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
@@ -414,30 +523,30 @@ export default function EvenementsPage() {
           <div className="lg:col-span-4 flex items-end justify-end gap-4 w-full pt-10 lg:pt-0">
             {/* Small Portrait Image */}
             <motion.div 
-              initial={{ opacity: 0, y: 45 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              initial={{ scale: 0, rotate: -45, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
               className="relative w-[110px] h-[150px] sm:w-[130px] sm:h-[180px] rounded-[1.5rem] overflow-hidden border border-[#060D03]/10 shrink-0 shadow-sm"
             >
               <Image 
-                src="/images/journey/Image co.png" 
+                src="/images/journey/Image co.jpg" 
                 alt="MEB workshop" 
-                fill 
+                fill sizes="(max-width: 768px) 100vw, 50vw" 
                 className="object-cover grayscale"
               />
             </motion.div>
 
             {/* Large Portrait Image */}
             <motion.div 
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 45 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
               className="relative w-[200px] h-[280px] sm:w-[240px] sm:h-[320px] rounded-[2rem] overflow-hidden border border-[#060D03]/10 shrink-0 shadow-md"
             >
               <Image 
-                src="/images/entrepreneur-1.png" 
+                src="/images/entrepreneur-1.jpg" 
                 alt="MEB community" 
-                fill 
+                fill sizes="(max-width: 768px) 100vw, 50vw" 
                 className="object-cover grayscale"
               />
             </motion.div>
@@ -497,16 +606,15 @@ export default function EvenementsPage() {
               </div>
               
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
                 className="relative w-full h-[250px] sm:h-[300px] lg:h-[220px] xl:h-[260px] rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg mt-8 lg:mt-0"
               >
                 <Image 
-                  src="/images/journey/Image co.png" 
+                  src="/images/journey/Image co.jpg" 
                   alt="MEB Community Events" 
-                  fill 
+                  fill sizes="(max-width: 768px) 100vw, 50vw" 
                   className="object-cover grayscale hover:grayscale-0 hover:scale-105 transition-all duration-700"
                 />
               </motion.div>
@@ -515,118 +623,15 @@ export default function EvenementsPage() {
             {/* COLUMN 2: Card 01 & Card 03 */}
             <div className="lg:col-span-3 flex flex-col gap-6">
               {/* Card 01 - JPO */}
-              {e1 && !e1.isHidden && e1.templateStyle === "05" && renderEventCard(e1)}
-              {e1 && !e1.isHidden && e1.templateStyle !== "05" && (
-                <motion.div
-                  onClick={() => openModal(e1)}
-                  whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(230, 57, 70, 0.25)" }}
-                  whileTap={{ scale: 0.95, y: -2 }}
-                  className="group border border-transparent bg-[#E63946] hover:bg-[#E63946]/95 rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[200px] cursor-pointer transition-colors duration-300 relative overflow-hidden text-white"
-                >
-                  <div className="relative z-10 flex justify-between items-start mb-6">
-                    <span className="font-mono text-sm text-white font-bold">01</span>
-                    <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-white/95 border border-white/20 px-2.5 py-0.5 rounded-full bg-white/10">
-                      {e1.tag}
-                    </span>
-                  </div>
-                  <div className="relative z-10">
-                    <h3 className="font-heading font-bold text-lg uppercase leading-tight text-white mb-2">
-                      {e1.title}
-                    </h3>
-                    <p className="font-body text-xs text-white/90 leading-relaxed mb-4 line-clamp-3">
-                      {e1.desc}
-                    </p>
-                    <div className="border-t border-white/25 pt-3 flex items-center justify-between font-mono text-[9px] text-white/70">
-                      <span>{e1.dateStr}</span>
-                      <span className="text-white font-bold">{e1.seats} PLACES RESTANTES</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+                            {isUpcoming(e1) && renderEventCard(e1!)}
 
               {/* Card 03 - Mastermind */}
-              {e3 && !e3.isHidden && e3.templateStyle === "05" && renderEventCard(e3)}
-              {e3 && !e3.isHidden && e3.templateStyle !== "05" && (
-                <motion.div
-                  onClick={() => openModal(e3)}
-                  whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(0, 177, 64, 0.25)" }}
-                  whileTap={{ scale: 0.95, y: -2 }}
-                  className="group border border-transparent bg-[#00B140] hover:bg-[#00D94F] rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[200px] cursor-pointer transition-colors duration-300 relative overflow-hidden text-white"
-                >
-                  <div className="relative z-10 flex justify-between items-start mb-6">
-                    <span className="font-mono text-sm text-white font-bold">03</span>
-                    <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-white/95 border border-white/20 px-2.5 py-0.5 rounded-full bg-white/10">
-                      {e3.tag}
-                    </span>
-                  </div>
-                  <div className="relative z-10">
-                    <h3 className="font-heading font-bold text-lg uppercase leading-tight text-white mb-2">
-                      {e3.title}
-                    </h3>
-                    <p className="font-body text-xs text-white/90 leading-relaxed mb-4 line-clamp-3">
-                      {e3.desc}
-                    </p>
-                    <div className="border-t border-white/25 pt-3 flex items-center justify-between font-mono text-[9px] text-white/70">
-                      <span>{e3.dateStr}</span>
-                      <span className="text-white font-bold">{e3.seats} PLACES RESTANTES</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+                            {isUpcoming(e3) && renderEventCard(e3!)}
             </div>
 
             {/* COLUMN 3: Card 02 (White with diagonal cut) & Overlapping button */}
             <div className="lg:col-span-3 flex flex-col gap-6 justify-between h-full relative">
-              {e2 && !e2.isHidden && e2.templateStyle === "05" && renderEventCard(e2)}
-              {e2 && !e2.isHidden && e2.templateStyle !== "05" && (
-                <motion.div 
-                  whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(255, 255, 255, 0.08)" }}
-                  whileTap={{ scale: 0.95, y: -2 }}
-                  className="relative group cursor-pointer rounded-[1.5rem]" 
-                  onClick={() => openModal(e2)}
-                >
-                  {/* White Card body with Clip Path */}
-                  <div 
-                    className="bg-white text-[#060D03] p-6 rounded-l-[1.5rem] rounded-br-[1.5rem] min-h-[200px] flex flex-col justify-between"
-                    style={{ clipPath: "polygon(0 0, 75% 0, 100% 25%, 100% 100%, 0 100%)" }}
-                  >
-                    <div>
-                      <div className="flex justify-between items-start mb-6 pr-6">
-                        <span className="font-mono text-sm text-[#00B140] font-bold">02</span>
-                        <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-[#060D03]/50 bg-[#060D03]/5 px-2.5 py-0.5 rounded-full">
-                          {e2.tag}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className="font-heading font-bold text-lg uppercase leading-tight text-[#060D03] mb-2">
-                          {e2.title}
-                        </h3>
-                        <p className="font-body text-xs text-[#060D03]/70 leading-relaxed mb-4 line-clamp-3">
-                          {e2.desc}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="border-t border-[#060D03]/10 pt-3 flex items-center justify-between font-mono text-[9px] text-[#060D03]/60">
-                      <span>{e2.dateStr}</span>
-                      <span className="text-[#00B140] font-bold">{e2.seats} PLACES RESTANTES</span>
-                    </div>
-                  </div>
-
-                  {/* Circular Button nested in the diagonal cut */}
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openModal(e2);
-                    }}
-                    className="absolute top-[-28px] right-[-12px] w-14 h-14 rounded-full border border-white bg-[#060D03] hover:bg-[#00B140] hover:text-white text-white flex items-center justify-center transition-all duration-300 group z-30 shadow-lg"
-                  >
-                    <ArrowDownLeft size={20} className="group-hover:scale-110 transition-transform" />
-                  </motion.button>
-                </motion.div>
-              )}
+                            {isUpcoming(e2) && renderEventCard(e2!)}
 
               {/* Spacing alignment for bento layout on desktop */}
               <div className="hidden lg:block h-24"></div>
@@ -634,34 +639,7 @@ export default function EvenementsPage() {
 
             {/* COLUMN 4: Card 04 (Spans full height of others) */}
             <div className="lg:col-span-3 flex h-full">
-              {e4 && !e4.isHidden && e4.templateStyle === "05" && renderEventCard(e4)}
-              {e4 && !e4.isHidden && e4.templateStyle !== "05" && (
-                <motion.div
-                  onClick={() => openModal(e4)}
-                  whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(245, 197, 24, 0.25)" }}
-                  whileTap={{ scale: 0.95, y: -2 }}
-                  className="group border border-transparent bg-[#F5C518] hover:bg-[#ffda3c] rounded-[1.5rem] p-6 flex flex-col justify-between w-full min-h-[300px] lg:min-h-full cursor-pointer transition-colors duration-300 relative overflow-hidden text-[#060D03]"
-                >
-                  <div className="relative z-10 flex justify-between items-start mb-6">
-                    <span className="font-mono text-sm text-[#060D03] font-bold">04</span>
-                    <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-[#060D03]/75 border border-[#060D03]/15 px-2.5 py-0.5 rounded-full bg-black/5">
-                      {e4.tag}
-                    </span>
-                  </div>
-                  <div className="relative z-10">
-                    <h3 className="font-heading font-bold text-lg uppercase leading-tight text-[#060D03] mb-2">
-                      {e4.title}
-                    </h3>
-                    <p className="font-body text-xs text-[#060D03]/85 leading-relaxed mb-4">
-                      {e4.desc}
-                    </p>
-                    <div className="border-t border-[#060D03]/15 pt-3 flex items-center justify-between font-mono text-[9px] text-[#060D03]/70 mt-6">
-                      <span>{e4.dateStr}</span>
-                      <span className="text-[#060D03] font-bold">{e4.seats} PLACES RESTANTES</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+                            {isUpcoming(e4) && renderEventCard(e4!)}
             </div>
 
           </div>
@@ -683,92 +661,19 @@ export default function EvenementsPage() {
         </section>
       )}
 
-      {/* ── ILS Y ÉTAIENT DÉJÀ (RÉCAPS D'ÉDITIONS PASSÉES) ───────────────────────── */}
-      {recapEvents.length > 0 && (
-        <section className="bg-white text-[#060D03] py-24 relative z-20 border-t border-[#060D03]/10">
+      {/* ── ÉDITIONS PASSÉES ───────────────────────── */}
+      {pastEvents.length > 0 && (
+        <section className="bg-[#060D03] text-white pb-24 relative z-20 border-t border-white/5 pt-12">
           <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
-            <h2 className="font-heading font-light text-xl sm:text-2xl uppercase tracking-tight mb-3">
+            <h3 className="font-heading font-light text-xl sm:text-2xl uppercase tracking-tight mb-3 text-white">
               <span className="font-mono text-lg mr-3 text-[#00B140]">(04)</span>
-              ILS Y ÉTAIENT DÉJÀ
-            </h2>
-            <p className="font-body text-sm text-[#060D03]/60 mb-12 max-w-xl">
-              Retour en images sur nos dernières éditions. Voilà ce qui t&apos;attend quand tu nous rejoins.
+              ÉDITIONS PASSÉES
+            </h3>
+            <p className="font-body text-sm text-white/50 mb-12 max-w-xl">
+              Retour sur nos dernières éditions. Ouvre le récap pour voir ce qui t&apos;attend.
             </p>
-
-            <div className="space-y-16">
-              {recapEvents.map((event) => (
-                <motion.article
-                  key={`recap-${event.num}`}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ duration: 0.5 }}
-                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-12 border-t border-[#060D03]/10 first:border-t-0 first:pt-0"
-                >
-                  {/* Bilan textuel */}
-                  <div className="lg:col-span-4">
-                    <span className="inline-block font-mono text-[10px] font-bold uppercase tracking-widest text-[#00B140] bg-[#E8F5EE] px-3 py-1 rounded-full mb-4">
-                      Édition passée
-                    </span>
-                    <h3 className="font-heading font-bold text-xl uppercase leading-tight mb-3">
-                      {event.title}
-                    </h3>
-
-                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[10px] uppercase tracking-wider text-[#060D03]/55 mb-5">
-                      {event.recapDateStr && (
-                        <span className="flex items-center gap-1.5">
-                          <Calendar size={13} weight="bold" className="text-[#00B140]" />
-                          {event.recapDateStr}
-                        </span>
-                      )}
-                      {event.venue && (
-                        <span className="flex items-center gap-1.5">
-                          <MapPin size={13} weight="bold" className="text-[#00B140]" />
-                          {event.venue}
-                        </span>
-                      )}
-                    </div>
-
-                    {typeof event.recapAttendees === "number" && event.recapAttendees > 0 && (
-                      <div className="mb-5 border-l-2 border-[#00B140] pl-4">
-                        <span className="block font-mono font-bold text-3xl text-[#00B140] leading-none">
-                          {event.recapAttendees}
-                        </span>
-                        <span className="font-body text-[11px] text-[#060D03]/55">
-                          participants présents
-                        </span>
-                      </div>
-                    )}
-
-                    {event.recapText && (
-                      <p className="font-body text-sm text-[#555555] leading-relaxed whitespace-pre-line">
-                        {event.recapText}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Galerie photos */}
-                  {(event.recapPhotos || []).length > 0 && (
-                    <div className="lg:col-span-8">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {(event.recapPhotos || []).map((src, i) => (
-                          <div
-                            key={`${src}-${i}`}
-                            className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#F5F5F5] border border-[#060D03]/8 group"
-                          >
-                            <EventPhoto
-                              src={src}
-                              alt={`${event.title}, photo ${i + 1} de l'édition ${event.recapDateStr || "passée"}`}
-                              sizes="(max-width: 768px) 50vw, (max-width: 1240px) 33vw, 300px"
-                              className="object-cover transition-transform duration-500 group-hover:scale-105"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </motion.article>
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+              {pastEvents.map((event) => renderEventCard(event))}
             </div>
           </div>
         </section>
@@ -779,7 +684,7 @@ export default function EvenementsPage() {
         {isModalOpen && selectedEvent && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={false}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white border-2 border-[#060D03] rounded-2xl max-w-md w-full p-8 relative text-[#060D03] shadow-2xl"

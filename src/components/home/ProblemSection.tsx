@@ -9,12 +9,12 @@ const problems = [
   {
     title: "Naviguer la bureaucratie complexe",
     content: "Les démarches administratives au Bénin peuvent être un labyrinthe. Nous simplifions et accélérons chaque étape pour vous.",
-    image: "/images/problems/commu.png"
+    image: "/images/problems/commu.jpg"
   },
   {
     title: "Trouver des financements fiables",
     content: "L'accès au capital est le principal frein à la croissance. Notre réseau vous connecte directement aux investisseurs et banques adaptées.",
-    image: "/images/journey/Image col.png"
+    image: "/images/journey/Image col.jpg"
   },
   {
     title: "Manque d'accompagnement expert",
@@ -41,10 +41,9 @@ export const ProblemSection = () => {
 
         {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
+          initial={{ opacity: 0, scale: 1.05, filter: "blur(4px)" }}
+          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          transition={{ duration: 0.3 }}
           className="flex flex-col mb-16 md:mb-24"
         >
           <span className="font-heading text-sm text-[#eabe07] font-bold tracking-widest uppercase mb-4 block">Les défis actuels</span>
@@ -61,16 +60,17 @@ export const ProblemSection = () => {
             <AnimatePresence mode="wait">
               <motion.div
                 key={openIndex}
-                initial={{ opacity: 0, scale: 1.05, filter: "blur(4px)" }}
+                initial={{ opacity: 0, scale: 1.03, filter: "blur(4px)" }}
                 animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                 exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="w-full h-full relative"
               >
                 <Image
                   src={problems[openIndex ?? 0].image}
                   alt={problems[openIndex ?? 0].title}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                   className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                 />
                 {/* Lueur et Ombre Interne */}
@@ -101,7 +101,7 @@ export const ProblemSection = () => {
                     {/* Icon animé */}
                     <motion.div
                       animate={{ rotate: isOpen ? 180 : 0 }}
-                      transition={{ duration: 0.4, ease: "anticipate" }}
+                      transition={{ duration: 0.3, ease: "anticipate" }}
                       className={`flex-shrink-0 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border transition-colors duration-500 ${isOpen ? "bg-[#eabe07] border-[#eabe07] text-meb-dark" : "border-meb-dark-border text-meb-gray-400 group-hover:border-meb-gray-400"
                         }`}
                     >
@@ -115,7 +115,7 @@ export const ProblemSection = () => {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.4, ease: "easeOut" }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
                         className="overflow-hidden"
                       >
                         <div className="pb-8 lg:pb-10 pt-2">
@@ -124,7 +124,7 @@ export const ProblemSection = () => {
 
                             {/* Background Image pour Mobile Uniquement */}
                             <div className="absolute inset-0 lg:hidden opacity-[0.20] grayscale">
-                              <Image src={problem.image} alt={problem.title} fill className="object-cover" />
+                              <Image src={problem.image} alt={problem.title} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
                             </div>
 
                             <div className="relative z-10 border-l-[3px] border-[#eabe07] pl-4 md:pl-5">

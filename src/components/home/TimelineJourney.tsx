@@ -34,17 +34,15 @@ export const TimelineJourney = () => {
         <div className="mb-12 md:mb-16 flex flex-col lg:flex-row lg:items-end justify-between gap-8">
           <div className="max-w-3xl">
             <motion.span
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              initial={false}
+              animate={{ opacity: 1, y: 0 }}
               className="font-heading text-sm font-bold tracking-widest uppercase text-meb-green mb-4 block"
             >
               Le Parcours MEB
             </motion.span>
             <motion.h2
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              initial={false}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="font-heading text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-white font-bold"
             >
@@ -53,10 +51,9 @@ export const TimelineJourney = () => {
             </motion.h2>
           </div>
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
+            initial={false}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
             className="lg:pb-4"
           >
             <p className="font-body text-sm md:text-lg text-meb-gray-400 max-w-sm border-l-2 border-meb-dark-border pl-4 md:pl-6 leading-relaxed">
@@ -67,16 +64,16 @@ export const TimelineJourney = () => {
 
         {/* Panoramic Cinematic Image */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          initial={false}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
           className="w-full h-[350px] md:h-[400px] lg:h-[500px] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden relative mb-12 group border border-meb-dark-border"
         >
           <Image
-            src="/images/journey/Image collée.png"
+            src="/images/journey/Image collée.jpg"
             alt="Processus MEB - Accompagnement"
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
             className="object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 hover:scale-105"
             style={{ objectPosition: 'center 30%' }}
           />
@@ -130,10 +127,9 @@ export const TimelineJourney = () => {
             return (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: 0.2 + (index * 0.15), ease: "easeOut" }}
+                initial={false}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 + (index * 0.15), ease: "easeOut" }}
                 className={`rounded-[1.5rem] md:rounded-[2rem] p-8 md:p-10 lg:p-12 flex flex-col justify-between relative overflow-hidden group cursor-pointer border transition-colors duration-500 min-h-[320px] md:min-h-[420px] ${bgClass}`}
               >
                 {/* INTERACTIVE BACKGROUNDS */}

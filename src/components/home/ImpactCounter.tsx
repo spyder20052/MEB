@@ -20,10 +20,9 @@ export const ImpactCounter = () => {
           {/* Left Column: Text Content */}
           <div className="lg:col-span-5 flex flex-col justify-center relative z-10 pr-0 lg:pr-10">
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
+              initial={false}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3 }}
             >
               <span className="font-heading text-sm font-bold tracking-widest uppercase text-meb-green mb-4 block">
                 Notre Impact
@@ -35,10 +34,9 @@ export const ImpactCounter = () => {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              initial={false}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
             >
               <p className="font-body text-sm md:text-lg text-meb-gray-400 leading-relaxed border-l-2 border-meb-dark-border pl-4 md:pl-6 max-w-md">
                 Notre approche transformative des solutions entrepreneuriales fait de nous un
@@ -85,10 +83,9 @@ export const ImpactCounter = () => {
                 return (
                   <motion.div
                     key={idx}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.5, delay: idx * 0.15 }}
+                    initial={false}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: idx * 0.15 }}
                     className={`${bgClass} p-8 lg:p-10 min-h-[250px] md:min-h-[280px] rounded-[1.5rem] md:rounded-[2rem] flex flex-col justify-between relative overflow-hidden group cursor-pointer transition-colors duration-500`}
                   >
                     {/* Interactive Backgrounds */}

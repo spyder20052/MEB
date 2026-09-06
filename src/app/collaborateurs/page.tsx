@@ -101,7 +101,7 @@ export default function CollaborateursPage() {
     // Continuous marquee tween
     const tween = gsap.to(track, {
       x: -scrollDistance,
-      duration: 25,
+      duration: 0.3,
       ease: "none",
       repeat: -1,
       paused: false,
@@ -124,29 +124,12 @@ export default function CollaborateursPage() {
   useEffect(() => {
     if (!textRef.current) return;
     
+    // Animation d'apparition au scroll retiree : les caracteres etaient
+    // masques jusqu'au declenchement, ce qui provoquait des a-coups.
     const chars = textRef.current.querySelectorAll(".char");
-    
-    const animation = gsap.fromTo(
-      chars,
-      { 
-        y: 100, 
-        opacity: 0 
-      },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        stagger: 0.025,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: textRef.current,
-          start: "top 90%",
-        },
-      }
-    );
+    gsap.set(chars, { y: 0, opacity: 1 });
 
     return () => {
-      animation.kill();
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
   }, []);
@@ -172,7 +155,7 @@ export default function CollaborateursPage() {
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.3 }}
             className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl uppercase tracking-tighter leading-[1.05] text-[#060D03] max-w-4xl mx-auto mb-8"
           >
             Propulser <br className="sm:hidden" />
@@ -184,7 +167,7 @@ export default function CollaborateursPage() {
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
           >
             <Link 
               href="/prendre-rdv" 

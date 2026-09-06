@@ -10,21 +10,21 @@ const testimonials = [
     quote: "La MEB a été le catalyseur dont mon entreprise avait besoin. Leur expertise et leur réseau ont littéralement transformé notre trajectoire de croissance.",
     name: "Josué K.",
     title: "Fondateur, TechBénin",
-    image: "/images/entrepreneur-1.png",
+    image: "/images/entrepreneur-1.jpg",
     stars: 5,
   },
   {
     quote: "En 6 mois d'adhésion, j'ai signé 3 contrats majeurs grâce aux connexions du MEB. Cet écosystème est unique au Bénin.",
     name: "Fatima A.",
     title: "CEO, AgroFutur SARL",
-    image: "/images/entrepreneur-2.png",
+    image: "/images/entrepreneur-2.jpg",
     stars: 5,
   },
   {
     quote: "Le Mastermind mensuel m'a permis de résoudre des blocages stratégiques que je traînais depuis des années. Indispensable.",
     name: "Marc-Élie D.",
     title: "Directeur, InnoBénin",
-    image: "/images/entrepreneur-1.png",
+    image: "/images/entrepreneur-1.jpg",
     stars: 5,
   },
 ];
@@ -47,8 +47,8 @@ const slideVariants = {
     filter: "blur(0px)",
     transition: {
       x: { type: "spring" as const, stiffness: 260, damping: 28 },
-      opacity: { duration: 0.35, ease: "easeOut" as const },
-      filter: { duration: 0.35, ease: "easeOut" as const },
+      opacity: { duration: 0.3, ease: "easeOut" as const },
+      filter: { duration: 0.3, ease: "easeOut" as const },
     },
   },
   exit: (dir: number) => ({
@@ -68,7 +68,7 @@ const portraitVariants = {
   center: {
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.55, ease: "easeOut" as const },
+    transition: { duration: 0.3, ease: "easeOut" as const },
   },
   exit: {
     opacity: 0,
@@ -114,10 +114,9 @@ export const Testimonials = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-16 gap-8">
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
+            initial={false}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
           >
             <span className="font-heading text-sm font-bold tracking-widest uppercase text-meb-green mb-4 block">
               La Voix des Entrepreneurs
@@ -128,10 +127,9 @@ export const Testimonials = () => {
             </h2>
           </motion.div>
           <motion.p
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
+            initial={false}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
             className="font-body text-sm md:text-base text-meb-gray-500 max-w-xs border-l-2 border-meb-gray-300 pl-4 leading-relaxed md:pb-4"
           >
             Des centaines d&apos;entrepreneurs ont transformé leur trajectoire grâce au MEB.
@@ -233,6 +231,7 @@ export const Testimonials = () => {
                     src={t.image}
                     alt={t.name}
                     fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                     className="object-cover grayscale group-hover/img:grayscale-0 transition-all duration-700"
                     priority
                   />

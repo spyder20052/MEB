@@ -16,10 +16,9 @@ export const ContactCTA = () => {
 
           {/* Box 1: Large Main Slogan (Col 1-2) */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+            initial={false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
             className="md:col-span-2 bg-white rounded-xl p-8 md:p-12 flex flex-col justify-between relative overflow-hidden group cursor-pointer lg:h-full border border-meb-dark-border shadow-2xl"
           >
             <div className="relative z-10">
@@ -45,10 +44,9 @@ export const ContactCTA = () => {
 
           {/* Box 2: "Des questions?" (Col 3) */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.1 }}
+            initial={false}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
             className="lg:col-span-1 bg-[#eabe07] rounded-xl p-6 md:p-8 flex flex-col justify-end relative overflow-hidden group cursor-pointer lg:h-full"
           >
             <div className="absolute inset-0 bg-meb-dark translate-y-[100%] group-hover:translate-y-[0%] transition-transform duration-500 ease-out origin-bottom" />
@@ -72,9 +70,8 @@ export const ContactCTA = () => {
             {/* Email Case */}
             <motion.a
               href="mailto:contact@entrepreneurbenin.pro"
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
+              initial={false}
+              animate={{ opacity: 1, x: 0 }}
               className="flex-1 bg-meb-dark border border-meb-dark-border rounded-xl p-5 flex flex-col justify-between group hover:border-meb-gray-600 transition-colors"
             >
               <div className="w-8 h-8 rounded-full bg-[#eabe07]/10 flex items-center justify-center text-[#eabe07] group-hover:bg-[#eabe07] group-hover:text-meb-dark transition-colors">
@@ -86,9 +83,8 @@ export const ContactCTA = () => {
             {/* Phone Case */}
             <motion.a
               href="tel:+2290160007007"
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
+              initial={false}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
               className="flex-1 bg-meb-dark border border-meb-dark-border rounded-xl p-5 flex flex-col justify-between group hover:border-meb-gray-600 transition-colors"
             >
@@ -100,10 +96,9 @@ export const ContactCTA = () => {
 
             {/* Location Case */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
+              initial={false}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
               className="flex-[1.5] bg-meb-dark border border-meb-dark-border rounded-xl p-5 flex flex-col justify-between group hover:border-[#eabe07]/30 transition-colors"
             >
               <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 group-hover:text-[#eabe07] transition-colors">

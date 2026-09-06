@@ -140,7 +140,7 @@ export function EventPopup() {
                   <motion.div
                     initial={{ width: "100%" }}
                     animate={{ width: "0%" }}
-                    transition={{ duration: 10, ease: "linear" }}
+                    transition={{ duration: 0.3, ease: "linear" }}
                     className="h-1.5 absolute bottom-0 left-0 bg-white/30"
                   />
                 </motion.div>
@@ -192,7 +192,7 @@ export function EventPopup() {
                   <motion.div
                     initial={{ width: "100%" }}
                     animate={{ width: "0%" }}
-                    transition={{ duration: 10, ease: "linear" }}
+                    transition={{ duration: 0.3, ease: "linear" }}
                     className="h-1.5 absolute bottom-0 left-0 bg-[#00B140]/30 rounded-bl-[1.5rem]"
                   />
                 </motion.div>
@@ -230,7 +230,7 @@ export function EventPopup() {
                   <motion.div
                     initial={{ width: "100%" }}
                     animate={{ width: "0%" }}
-                    transition={{ duration: 10, ease: "linear" }}
+                    transition={{ duration: 0.3, ease: "linear" }}
                     className="h-1.5 absolute bottom-0 left-0 bg-white/30"
                   />
                 </motion.div>
@@ -268,7 +268,7 @@ export function EventPopup() {
                   <motion.div
                     initial={{ width: "100%" }}
                     animate={{ width: "0%" }}
-                    transition={{ duration: 10, ease: "linear" }}
+                    transition={{ duration: 0.3, ease: "linear" }}
                     className="h-1.5 absolute bottom-0 left-0 bg-[#060D03]/20"
                   />
                 </motion.div>

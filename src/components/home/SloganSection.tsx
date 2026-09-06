@@ -8,10 +8,9 @@ export const SloganSection = () => {
             <div className="max-w-[1240px] mx-auto px-5 sm:px-8 flex flex-col items-center">
 
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    initial={false}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
                     className="flex flex-col items-center text-center space-y-4 md:space-y-6"
                 >
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
@@ -29,10 +28,9 @@ export const SloganSection = () => {
                     </div>
 
                     <motion.p
-                        initial={{ opacity: 0, y: 10 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
+                        initial={false}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1, duration: 0.3 }}
                         className="font-mono text-xs md:text-sm font-bold tracking-[0.4em] uppercase text-meb-gray-400 mt-8"
                     >
                         L&apos;Écosystème Actif Du Business Béninois

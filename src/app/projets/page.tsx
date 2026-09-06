@@ -48,25 +48,12 @@ export default function ProjetsPage() {
   useEffect(() => {
     if (!headerRef.current) return;
 
+    // Animation d'apparition au scroll retiree : le texte etait masque
+    // jusqu'au declenchement, ce qui provoquait des a-coups.
     const lines = headerRef.current.querySelectorAll(".reveal-line");
-
-    gsap.set(lines, { y: "105%", opacity: 0 });
-
-    const animation = gsap.to(lines, {
-      y: "0%",
-      opacity: 1,
-      duration: 1.2,
-      stagger: 0.15,
-      ease: "power4.out",
-      scrollTrigger: {
-        trigger: headerRef.current,
-        start: "top 85%",
-        toggleActions: "play none none none",
-      },
-    });
+    gsap.set(lines, { y: "0%", opacity: 1 });
 
     return () => {
-      animation.kill();
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
   }, []);
@@ -183,7 +170,7 @@ export default function ProjetsPage() {
                 <motion.div 
                   initial={{ opacity: 0, x: -25 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6 }}
+                  transition={{ duration: 0.3 }}
                   whileHover={{ y: -12, scale: 1.05, rotate: -1, boxShadow: "0 20px 30px rgba(234,186,7,0.3)" }}
                   whileTap={{ scale: 0.94, rotate: 0, y: -2 }}
                   className="bg-[#eabe07] border border-[#d0a905] rounded-2xl p-4 w-full sm:w-[220px] shadow-sm relative z-10 flex-shrink-0 cursor-pointer"
@@ -228,7 +215,7 @@ export default function ProjetsPage() {
                 <motion.div 
                   initial={{ opacity: 0, y: -25 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
                   whileHover={{ y: -12, scale: 1.05, rotate: 1, boxShadow: "0 20px 30px rgba(0,177,64,0.3)" }}
                   whileTap={{ scale: 0.94, rotate: 0, y: -2 }}
                   className="bg-[#00B140] border border-[#009b37] rounded-2xl p-4 w-full sm:w-[220px] shadow-sm relative z-10 sm:mt-10 flex-shrink-0 cursor-pointer"
@@ -261,7 +248,7 @@ export default function ProjetsPage() {
                 <motion.div 
                   initial={{ opacity: 0, y: 25 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
                   whileHover={{ y: -12, scale: 1.05, rotate: -1, boxShadow: "0 20px 30px rgba(198,24,39,0.3)" }}
                   whileTap={{ scale: 0.94, rotate: 0, y: -2 }}
                   className="bg-[#c61827] border border-[#ad1320] rounded-2xl p-4 w-full sm:w-[220px] shadow-sm relative z-10 cursor-pointer"
@@ -281,7 +268,7 @@ export default function ProjetsPage() {
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.5 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
                   whileHover={{ y: -6, scale: 1.04, boxShadow: "0 15px 35px rgba(0,0,0,0.12)", borderColor: "#00B140" }}
                   whileTap={{ scale: 0.95, y: -1 }}
                   className="bg-white border-2 border-[#060D03]/10 rounded-full px-5 py-2.5 flex items-center justify-between w-full sm:w-[350px] shadow-md cursor-pointer"
@@ -304,7 +291,7 @@ export default function ProjetsPage() {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
               whileHover={{ y: -14, scale: 1.03, boxShadow: "0 30px 60px rgba(0,177,64,0.15)" }}
               whileTap={{ scale: 0.95, y: -4 }}
               className="bg-[#0A1405] border border-[#13260A] rounded-[2.5rem] p-6 max-w-[310px] w-full flex flex-col justify-between min-h-[440px] shadow-lg relative group overflow-hidden cursor-pointer"
@@ -312,9 +299,9 @@ export default function ProjetsPage() {
               {/* Card Image */}
               <div className="relative w-full h-[180px] rounded-[1.6rem] overflow-hidden border border-white/[0.05] bg-white/5 mb-5 flex items-center justify-center grayscale group-hover:grayscale-0 transition-all duration-500">
                 <Image 
-                  src="/images/journey/Image co.png" 
+                  src="/images/journey/Image co.jpg" 
                   alt="Rapports de tendances" 
-                  fill 
+                  fill sizes="(max-width: 768px) 100vw, 50vw" 
                   className="object-cover group-hover:scale-102 transition-transform duration-500"
                 />
               </div>
@@ -358,7 +345,7 @@ export default function ProjetsPage() {
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
             className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tighter leading-[1.05] text-[#060D03] max-w-4xl mx-auto mb-8"
           >
             Bâtir, structurer et propulser <br />
@@ -368,7 +355,7 @@ export default function ProjetsPage() {
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
           >
             <Link 
               href="/prendre-rdv" 
@@ -437,7 +424,7 @@ export default function ProjetsPage() {
                     <Image 
                       src={project.image} 
                       alt={project.title} 
-                      fill 
+                      fill sizes="(max-width: 768px) 100vw, 50vw" 
                       className="object-cover"
                     />
                   </div>

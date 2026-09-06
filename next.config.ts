@@ -30,6 +30,13 @@ const nextConfig: NextConfig = {
     // cassée. Activée en développement seulement ; en production les photos
     // viennent d'un hôte public et la protection reste entière.
     dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
+    // AVIF puis WebP : 30 à 50 % plus léger que le JPEG à qualité égale,
+    // ce qui compte surtout sur les connexions mobiles.
+    formats: ['image/avif', 'image/webp'],
+    // Tailles réellement servies : évite de générer des variantes inutiles.
+    deviceSizes: [390, 640, 828, 1080, 1200, 1920],
+    imageSizes: [64, 96, 128, 256, 384],
+    minimumCacheTTL: 2592000,
     // Hôtes autorisés pour next/image. À garder aligné avec canOptimizePhoto()
     // dans src/lib/photos.ts (qui évite l'optimiseur pour tout autre hôte).
     remotePatterns: [

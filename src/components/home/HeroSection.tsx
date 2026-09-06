@@ -22,7 +22,7 @@ export const HeroSection = () => {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
           className="flex flex-col items-center text-center max-w-4xl mx-auto mb-12 sm:mb-16"
         >
           <h1 className="font-heading text-[48px] sm:text-[64px] md:text-[80px] lg:text-[84px] leading-[1.05] tracking-tight text-white mb-6">
@@ -39,7 +39,7 @@ export const HeroSection = () => {
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
           className="w-full grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 lg:h-[420px]"
         >
 
@@ -47,9 +47,10 @@ export const HeroSection = () => {
           <div className="col-span-1 flex flex-col gap-2 md:gap-3">
             <div className="flex-[0.8] lg:flex-1 card-solid-dark rounded-xl overflow-hidden relative min-h-[120px] lg:min-h-0 border border-meb-dark-border group cursor-crosshair">
               <Image
-                src="/images/journey/Image co.png"
+                src="/images/journey/Image co.jpg"
                 alt="Workshop MEB"
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                 className="object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 hover:scale-105"
               />
               <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-meb-dark to-transparent opacity-80" />
@@ -95,9 +96,10 @@ export const HeroSection = () => {
 
             <div className="flex-[0.8] lg:flex-1 card-solid-dark rounded-xl overflow-hidden relative min-h-[120px] lg:min-h-0 border border-meb-dark-border group cursor-crosshair">
               <Image
-                src="/images/journey/Image colléee.png"
+                src="/images/journey/Image colléee.jpg"
                 alt="Business Community"
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                 className="object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 hover:scale-105"
               />
               <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-meb-dark to-transparent opacity-80" />
@@ -107,9 +109,10 @@ export const HeroSection = () => {
           {/* Column 3 - Image experte */}
           <div className="col-span-2 sm:col-span-1 lg:col-span-1 card-solid-dark rounded-xl overflow-hidden relative min-h-[220px] lg:min-h-full border border-meb-dark-border group cursor-crosshair">
             <Image
-              src="/images/journey/Image collée.png" 
+              src="/images/journey/Image collée.jpg" 
               alt="Expert Leadership"
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
               className="object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 scale-100 hover:scale-105"
               style={{ objectPosition: 'center top' }}
             />

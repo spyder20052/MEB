@@ -10,10 +10,9 @@ export const SolutionPillars = () => {
 
         {/* Title */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
+          initial={false}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
           className="mb-12 md:mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6"
         >
           <div>
@@ -29,10 +28,9 @@ export const SolutionPillars = () => {
 
         {/* Grid layout matching Ampdrive Bento details */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          initial={false}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
           className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
         >
 
@@ -53,9 +51,10 @@ export const SolutionPillars = () => {
           {/* Card 2: Image Card */}
           <div className="col-span-1 card-solid-dark rounded-2xl overflow-hidden relative min-h-[250px] lg:min-h-[400px] border border-meb-dark-border group cursor-crosshair">
             <Image
-              src="/images/problems/Image collée.png"
+              src="/images/problems/Image collée.jpg"
               alt="Consultation Communautaire"
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
               className="object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 hover:scale-105"
               style={{ objectPosition: 'center' }}
             />
@@ -80,7 +79,7 @@ export const SolutionPillars = () => {
 
             {/* Image abstraite/tech optionnelle en fond au hover */}
             <div className="absolute inset-0 opacity-0 group-hover:opacity-[0.15] grayscale mix-blend-overlay transition-opacity duration-700 delay-200 pointer-events-none">
-              <Image src="/images/journey/Image col.png" alt="Support Tech" fill className="object-cover" />
+              <Image src="/images/journey/Image col.jpg" alt="Support Tech" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
             </div>
 
             <div className="relative z-10 h-full flex flex-col justify-end border-l-[3px] border-meb-dark group-hover:border-meb-green pl-4 transition-colors duration-500">

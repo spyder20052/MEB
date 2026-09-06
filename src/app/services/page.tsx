@@ -102,7 +102,7 @@ export default function ServicesPage() {
               <motion.h1 
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
+                transition={{ duration: 0.3 }}
                 className="font-heading font-black text-[10vw] sm:text-[7vw] lg:text-[4.8vw] leading-[1.05] tracking-tighter text-meb-dark uppercase"
               >
                 DES IDÉES <br />
@@ -130,12 +130,7 @@ export default function ServicesPage() {
 
           {/* RIGHT COLUMN: Soft Green Folder Card (col-span-5) */}
           <div className="lg:col-span-5 flex flex-col justify-stretch">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="relative pt-6 w-full flex flex-col flex-1 cursor-pointer group/card hover:-translate-y-2 transition-all duration-500"
-            >
+            <div className="relative pt-6 w-full flex flex-col flex-1 cursor-pointer group/card hover:-translate-y-2 transition-all duration-500">
               {/* Folder Tab */}
               <div className="absolute top-0 right-0 w-36 h-6 bg-[#E8F5EE] rounded-t-2xl flex items-center justify-end px-4">
                 <div className="flex gap-1.5">
@@ -155,9 +150,9 @@ export default function ServicesPage() {
                 {/* Entrepreneur Image Container */}
                 <div className="relative w-full h-[180px] md:h-[220px] rounded-2xl overflow-hidden mb-6">
                   <Image 
-                    src="/images/entrepreneur-2.png" 
+                    src="/images/entrepreneur-2.jpg" 
                     alt="Entrepreneur MEB" 
-                    fill 
+                    fill sizes="(max-width: 768px) 100vw, 50vw" 
                     className="object-cover object-top grayscale group-hover/card:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -174,7 +169,7 @@ export default function ServicesPage() {
                   </div>
                 </Link>
               </div>
-            </motion.div>
+            </div>
           </div>
 
         </div>
@@ -297,10 +292,9 @@ export default function ServicesPage() {
             return (
               <motion.div
                 key={s.number}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 0.6, delay: i * 0.08, ease: "easeOut" }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0, ease: "easeOut" }}
                 className={`group relative rounded-[1.5rem] md:rounded-[2rem] overflow-hidden cursor-pointer transition-colors duration-500 flex flex-col
                   ${s.size === "large" ? "md:col-span-2 min-h-[380px]" : "min-h-[320px]"}
                   ${isDark ? "bg-[#0B1407] border border-white/[0.06] hover:border-meb-green/50" : ""}
@@ -420,9 +414,8 @@ export default function ServicesPage() {
       <section className="max-t border-t border-meb-gray-200 py-24 md:py-32">
         <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            initial={false}
+            animate={{ opacity: 1, y: 0 }}
             className="mb-16"
           >
             <span className="font-mono text-[11px] font-bold tracking-[0.25em] uppercase text-meb-green mb-4 block">
@@ -438,10 +431,9 @@ export default function ServicesPage() {
             {process.map((p, i) => (
               <motion.div
                 key={p.step}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
+                initial={false}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0 }}
                 className="bg-meb-gray-50 border border-meb-gray-200 rounded-2xl p-8 group hover:bg-meb-gray-100/50 hover:-translate-y-1 transition-all duration-500 relative overflow-hidden"
               >
                 {/* Number watermark */}
@@ -463,9 +455,8 @@ export default function ServicesPage() {
       <section className="py-24 md:py-32">
         <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            initial={false}
+            animate={{ opacity: 1, y: 0 }}
             className="bg-meb-green rounded-[2rem] md:rounded-[3rem] p-10 md:p-20 flex flex-col md:flex-row items-start md:items-end justify-between gap-10 relative overflow-hidden group"
           >
             {/* Dark sweep */}

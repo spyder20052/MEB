@@ -596,7 +596,7 @@ export default function DashboardPage() {
       title: newProject.title,
       sector: newProject.sector,
       desc: newProject.desc,
-      image: newProject.image || "/images/entrepreneur-1.png",
+      image: newProject.image || "/images/entrepreneur-1.jpg",
       bgColor,
       tagColor,
       isHidden: false,

@@ -34,7 +34,7 @@ const members = [
     role: "Design Textile",
     tag: "Mode & Artisanat",
     region: "Bénin / Mode",
-    image: "/images/journey/Image co.png",
+    image: "/images/journey/Image co.jpg",
     cardClass: "bg-[#eabe07] text-[#060D03] border-[#d0a905]",
     rotationDeg: -6,
     pos: { left: "150px", top: "230px" }
@@ -44,7 +44,7 @@ const members = [
     role: "Tech Founder",
     tag: "Services & Tech",
     region: "Cotonou / Tech",
-    image: "/images/entrepreneur-1.png",
+    image: "/images/entrepreneur-1.jpg",
     cardClass: "bg-[#00B140] text-white border-[#009b37]",
     rotationDeg: 5,
     pos: { left: "380px", top: "450px" }
@@ -54,7 +54,7 @@ const members = [
     role: "Agro-preneur",
     tag: "Agro-transformation",
     region: "Parakou / Agri",
-    image: "/images/journey/Image col.png",
+    image: "/images/journey/Image col.jpg",
     cardClass: "bg-[#060D03] text-white border-[#13260A]",
     rotationDeg: -3,
     pos: { left: "680px", top: "200px" }
@@ -64,7 +64,7 @@ const members = [
     role: "Éco-bâtisseur",
     tag: "Énergie durable",
     region: "Bénin / Construction",
-    image: "/images/entrepreneur-2.png",
+    image: "/images/entrepreneur-2.jpg",
     cardClass: "bg-[#c61827] text-white border-[#ad1320]",
     rotationDeg: 6,
     pos: { left: "980px", top: "120px" }
@@ -74,7 +74,7 @@ const members = [
     role: "Artisane Chocolat",
     tag: "Gastronomie locale",
     region: "Cotonou / Artisane",
-    image: "/images/journey/Image collée.png",
+    image: "/images/journey/Image collée.jpg",
     cardClass: "bg-[#FAF9F6] text-[#060D03] border-[#00B140]",
     rotationDeg: -4,
     pos: { left: "1120px", top: "400px" }
@@ -154,14 +154,14 @@ export default function CommunautePage() {
     tl.to(titleLines, {
       y: "0%",
       opacity: 1,
-      duration: 1.2,
+      duration: 0.3,
       stagger: 0.2,
       ease: "power4.out",
     })
     .to(metaElements, {
       y: 0,
       opacity: 1,
-      duration: 0.8,
+      duration: 0.3,
       stagger: 0.15,
       ease: "power3.out",
     }, "-=0.6");
@@ -174,25 +174,12 @@ export default function CommunautePage() {
   useEffect(() => {
     if (!sectionHeaderRef.current) return;
 
+    // Animation d'apparition au scroll retiree : le texte etait masque
+    // jusqu'au declenchement, ce qui provoquait des a-coups.
     const lines = sectionHeaderRef.current.querySelectorAll(".reveal-line");
-
-    gsap.set(lines, { y: "105%", opacity: 0 });
-
-    const animation = gsap.to(lines, {
-      y: "0%",
-      opacity: 1,
-      duration: 1.2,
-      stagger: 0.15,
-      ease: "power4.out",
-      scrollTrigger: {
-        trigger: sectionHeaderRef.current,
-        start: "top 85%",
-        toggleActions: "play none none none",
-      },
-    });
+    gsap.set(lines, { y: "0%", opacity: 1 });
 
     return () => {
-      animation.kill();
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
   }, []);
@@ -348,9 +335,9 @@ export default function CommunautePage() {
               
               {/* Cloud Sky Background */}
               <Image 
-                src="/images/community_sky.png" 
+                src="/images/community_sky.jpg" 
                 alt="Sky Background" 
-                fill 
+                fill sizes="(max-width: 768px) 100vw, 50vw" 
                 className="object-cover"
                 priority
               />
@@ -449,7 +436,7 @@ export default function CommunautePage() {
                     <Image 
                       src={m.image} 
                       alt={m.name} 
-                      fill 
+                      fill sizes="(max-width: 768px) 100vw, 50vw" 
                       className="object-cover"
                     />
                   </div>
@@ -530,10 +517,9 @@ export default function CommunautePage() {
             ].map((card, idx) => (
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.6, delay: idx * 0.12, ease: "easeOut" }}
+                initial={false}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: idx * 0.12, ease: "easeOut" }}
                 whileHover={{ y: -6, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 className={`p-8 flex flex-col justify-between min-h-[440px] text-[#060D03] transition-shadow duration-300 relative ${card.bgColor}`}
