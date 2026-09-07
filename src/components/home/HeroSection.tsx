@@ -47,7 +47,7 @@ export const HeroSection = () => {
           <div className="col-span-1 flex flex-col gap-2 md:gap-3">
             <div className="flex-[0.8] lg:flex-1 card-solid-dark rounded-xl overflow-hidden relative min-h-[120px] lg:min-h-0 border border-meb-dark-border group cursor-crosshair">
               <Image
-                src="/images/journey/Image co.jpg"
+                src="/images/journey/image-co.jpg"
                 alt="Workshop MEB"
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
@@ -96,7 +96,7 @@ export const HeroSection = () => {
 
             <div className="flex-[0.8] lg:flex-1 card-solid-dark rounded-xl overflow-hidden relative min-h-[120px] lg:min-h-0 border border-meb-dark-border group cursor-crosshair">
               <Image
-                src="/images/journey/Image colléee.jpg"
+                src="/images/journey/image-colleee.jpg"
                 alt="Business Community"
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
@@ -109,7 +109,7 @@ export const HeroSection = () => {
           {/* Column 3 - Image experte */}
           <div className="col-span-2 sm:col-span-1 lg:col-span-1 card-solid-dark rounded-xl overflow-hidden relative min-h-[220px] lg:min-h-full border border-meb-dark-border group cursor-crosshair">
             <Image
-              src="/images/journey/Image collée.jpg" 
+              src="/images/journey/image-collee.jpg" 
               alt="Expert Leadership"
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"

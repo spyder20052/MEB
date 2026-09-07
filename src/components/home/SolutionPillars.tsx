@@ -51,13 +51,14 @@ export const SolutionPillars = () => {
           {/* Card 2: Image Card */}
           <div className="col-span-1 card-solid-dark rounded-2xl overflow-hidden relative min-h-[250px] lg:min-h-[400px] border border-meb-dark-border group cursor-crosshair">
             <Image
-              src="/images/problems/Image collée.jpg"
+              src="/images/problems/image-collee.jpg"
               alt="Consultation Communautaire"
               fill
+              loading="lazy"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
               className="object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 hover:scale-105"
               style={{ objectPosition: 'center' }}
-            />
+             />
             <div className="absolute inset-0 bg-gradient-to-t from-meb-dark via-meb-dark/40 to-transparent opacity-90 group-hover:opacity-60 transition-opacity duration-500" />
 
             <div className="absolute inset-0 p-6 lg:p-8 flex flex-col justify-end z-10">
@@ -79,7 +80,7 @@ export const SolutionPillars = () => {
 
             {/* Image abstraite/tech optionnelle en fond au hover */}
             <div className="absolute inset-0 opacity-0 group-hover:opacity-[0.15] grayscale mix-blend-overlay transition-opacity duration-700 delay-200 pointer-events-none">
-              <Image src="/images/journey/Image col.jpg" alt="Support Tech" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+              <Image src="/images/journey/image-col.jpg" alt="Support Tech" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover"  loading="lazy"/>
             </div>
 
             <div className="relative z-10 h-full flex flex-col justify-end border-l-[3px] border-meb-dark group-hover:border-meb-green pl-4 transition-colors duration-500">

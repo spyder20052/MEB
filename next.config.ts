@@ -23,6 +23,13 @@ const currentSupabaseStoragePattern = (() => {
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  experimental: {
+    // Sans cela, importer une icone de @phosphor-icons/react (57 Mo de
+    // paquet) ou un composant de framer-motion tire une grande partie de
+    // la bibliotheque dans le bundle. Next ne garde alors que ce qui est
+    // reellement utilise.
+    optimizePackageImports: ["@phosphor-icons/react", "framer-motion"],
+  },
   images: {
     // Next 16 refuse d'optimiser une image dont l'hôte résout vers une IP privée
     // ou loopback (protection SSRF) : sans cette exception, chaque photo servie

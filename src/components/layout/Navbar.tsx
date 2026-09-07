@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ListIcon, XIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { usePathname } from "next/navigation";
 
-import { getHiddenPages } from "@/utils/storage";
+import { getHiddenPagesLite } from "@/utils/hiddenPages";
 
 const navLinks = [
   { label: "Accueil", href: "/" },
@@ -39,7 +39,7 @@ export const Navbar = () => {
 
   useEffect(() => {
     const loadSettings = () => {
-      getHiddenPages().then((hidden) => {
+      getHiddenPagesLite().then((hidden) => {
         setActiveLinks(navLinks.filter((link) => !hidden.includes(link.href)));
       });
     };

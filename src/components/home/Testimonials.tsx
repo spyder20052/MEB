@@ -231,6 +231,7 @@ export const Testimonials = () => {
                     src={t.image}
                     alt={t.name}
                     fill
+                    loading="lazy"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                     className="object-cover grayscale group-hover/img:grayscale-0 transition-all duration-700"
                     priority

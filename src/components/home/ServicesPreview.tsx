@@ -58,9 +58,10 @@ export const ServicesPreview = () => {
                      src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=1200"
                      alt="Création et Structuration en équipe"
                      fill
+                     loading="lazy"
                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                      className="object-cover opacity-30 grayscale group-hover:grayscale-0 group-hover:opacity-40 transition-all duration-700 hover:scale-105 pointer-events-none"
-                  />
+                   />
                   {/* Cinematic Gradient */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-meb-dark/95 via-meb-dark/70 to-transparent group-hover:opacity-80 transition-opacity duration-500 pointer-events-none" />
 
@@ -147,13 +148,14 @@ export const ServicesPreview = () => {
                >
                   {/* Background Image right aligned */}
                   <Image
-                     src="/images/journey/Image col.jpg"
+                     src="/images/journey/image-col.jpg"
                      alt="Croissance et Hub MEB"
                      fill
+                     loading="lazy"
                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                      className="object-cover opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-70 transition-all duration-700 hover:scale-[1.02] pointer-events-none"
                      style={{ objectPosition: 'center top' }}
-                  />
+                   />
                   {/* Split Gradient fading out to the right */}
                   <div className="absolute inset-0 bg-gradient-to-r from-[#060D03] via-[#060D03]/90 to-transparent group-hover:via-[#060D03]/70 transition-colors duration-500 pointer-events-none" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#060D03] via-transparent to-transparent opacity-80 pointer-events-none" />

@@ -99,9 +99,11 @@ export default function CollaborateursPage() {
     gsap.set(track, { x: 0 });
 
     // Continuous marquee tween
+    // Vitesse constante (~55 px/s) plutot qu'une duree fixe : la bande
+    // defile au meme rythme quel que soit le nombre de partenaires.
     const tween = gsap.to(track, {
       x: -scrollDistance,
-      duration: 0.3,
+      duration: Math.max(20, scrollDistance / 55),
       ease: "none",
       repeat: -1,
       paused: false,

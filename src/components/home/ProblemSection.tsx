@@ -14,7 +14,7 @@ const problems = [
   {
     title: "Trouver des financements fiables",
     content: "L'accès au capital est le principal frein à la croissance. Notre réseau vous connecte directement aux investisseurs et banques adaptées.",
-    image: "/images/journey/Image col.jpg"
+    image: "/images/journey/image-col.jpg"
   },
   {
     title: "Manque d'accompagnement expert",
@@ -70,9 +70,10 @@ export const ProblemSection = () => {
                   src={problems[openIndex ?? 0].image}
                   alt={problems[openIndex ?? 0].title}
                   fill
+                  loading="lazy"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                   className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-                />
+                 />
                 {/* Lueur et Ombre Interne */}
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-meb-dark to-transparent opacity-90" />
                 <div className="absolute inset-0 bg-[#eabe07]/10 mix-blend-overlay" />
@@ -124,7 +125,7 @@ export const ProblemSection = () => {
 
                             {/* Background Image pour Mobile Uniquement */}
                             <div className="absolute inset-0 lg:hidden opacity-[0.20] grayscale">
-                              <Image src={problem.image} alt={problem.title} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+                              <Image src={problem.image} alt={problem.title} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover"  loading="lazy"/>
                             </div>
 
                             <div className="relative z-10 border-l-[3px] border-[#eabe07] pl-4 md:pl-5">

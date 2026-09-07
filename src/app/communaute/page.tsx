@@ -34,7 +34,7 @@ const members = [
     role: "Design Textile",
     tag: "Mode & Artisanat",
     region: "Bénin / Mode",
-    image: "/images/journey/Image co.jpg",
+    image: "/images/journey/image-co.jpg",
     cardClass: "bg-[#eabe07] text-[#060D03] border-[#d0a905]",
     rotationDeg: -6,
     pos: { left: "150px", top: "230px" }
@@ -54,7 +54,7 @@ const members = [
     role: "Agro-preneur",
     tag: "Agro-transformation",
     region: "Parakou / Agri",
-    image: "/images/journey/Image col.jpg",
+    image: "/images/journey/image-col.jpg",
     cardClass: "bg-[#060D03] text-white border-[#13260A]",
     rotationDeg: -3,
     pos: { left: "680px", top: "200px" }
@@ -74,7 +74,7 @@ const members = [
     role: "Artisane Chocolat",
     tag: "Gastronomie locale",
     region: "Cotonou / Artisane",
-    image: "/images/journey/Image collée.jpg",
+    image: "/images/journey/image-collee.jpg",
     cardClass: "bg-[#FAF9F6] text-[#060D03] border-[#00B140]",
     rotationDeg: -4,
     pos: { left: "1120px", top: "400px" }

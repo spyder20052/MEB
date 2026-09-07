@@ -529,7 +529,7 @@ export default function EvenementsPage() {
               className="relative w-[110px] h-[150px] sm:w-[130px] sm:h-[180px] rounded-[1.5rem] overflow-hidden border border-[#060D03]/10 shrink-0 shadow-sm"
             >
               <Image 
-                src="/images/journey/Image co.jpg" 
+                src="/images/journey/image-co.jpg" 
                 alt="MEB workshop" 
                 fill sizes="(max-width: 768px) 100vw, 50vw" 
                 className="object-cover grayscale"
@@ -612,7 +612,7 @@ export default function EvenementsPage() {
                 className="relative w-full h-[250px] sm:h-[300px] lg:h-[220px] xl:h-[260px] rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg mt-8 lg:mt-0"
               >
                 <Image 
-                  src="/images/journey/Image co.jpg" 
+                  src="/images/journey/image-co.jpg" 
                   alt="MEB Community Events" 
                   fill sizes="(max-width: 768px) 100vw, 50vw" 
                   className="object-cover grayscale hover:grayscale-0 hover:scale-105 transition-all duration-700"

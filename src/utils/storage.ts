@@ -114,7 +114,7 @@ export const DEFAULT_PROJECTS: ProjectItem[] = [
     title: "Karité Naturel",
     sector: "Cosmétique",
     desc: "Soins naturels équitables par des coopératives de femmes.",
-    image: "/images/journey/Image co.jpg",
+    image: "/images/journey/image-co.jpg",
     bgColor: "bg-yellow-50 border-yellow-200 text-yellow-950",
     tagColor: "bg-yellow-100 text-yellow-700",
     isHidden: false,
@@ -134,7 +134,7 @@ export const DEFAULT_PROJECTS: ProjectItem[] = [
     title: "Agri-Tech Bénin",
     sector: "Technologie",
     desc: "Plateforme de vente directe connectant producteurs et marchés.",
-    image: "/images/journey/Image co.jpg",
+    image: "/images/journey/image-co.jpg",
     bgColor: "bg-green-50 border-green-200 text-green-950",
     tagColor: "bg-green-100 text-green-700",
     isHidden: false,
@@ -389,13 +389,35 @@ export const saveHiddenPages = async (paths: string[]): Promise<void> => {
 export const subscribeToContentUpdates = (): (() => void) => {
   if (!isBrowser()) return () => {};
   const supabase = getSupabaseBrowserClient();
+
+  // Base injoignable : sans garde-fou, le canal se reconnecte indefiniment
+  // et relance a chaque fois les requetes REST — reseau et batterie
+  // consommes en continu sur mobile. On abandonne apres quelques echecs.
+  let failures = 0;
+  const MAX_FAILURES = 3;
+  let stopped = false;
+
   const channel = supabase
     .channel("meb-content")
     .on("postgres_changes", { event: "*", schema: "public", table: "events" }, notifyUpdate)
     .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, notifyUpdate)
     .on("postgres_changes", { event: "*", schema: "public", table: "site_settings" }, notifyUpdate)
-    .subscribe();
+    .subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        failures = 0;
+        return;
+      }
+      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+        failures += 1;
+        if (failures >= MAX_FAILURES && !stopped) {
+          stopped = true;
+          supabase.removeChannel(channel);
+        }
+      }
+    });
+
   return () => {
+    stopped = true;
     supabase.removeChannel(channel);
   };
 };

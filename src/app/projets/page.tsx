@@ -299,7 +299,7 @@ export default function ProjetsPage() {
               {/* Card Image */}
               <div className="relative w-full h-[180px] rounded-[1.6rem] overflow-hidden border border-white/[0.05] bg-white/5 mb-5 flex items-center justify-center grayscale group-hover:grayscale-0 transition-all duration-500">
                 <Image 
-                  src="/images/journey/Image co.jpg" 
+                  src="/images/journey/image-co.jpg" 
                   alt="Rapports de tendances" 
                   fill sizes="(max-width: 768px) 100vw, 50vw" 
                   className="object-cover group-hover:scale-102 transition-transform duration-500"

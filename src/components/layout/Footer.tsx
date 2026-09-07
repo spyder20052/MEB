@@ -9,7 +9,7 @@ import {
   CaretRight
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
-import { getHiddenPages } from "@/utils/storage";
+import { getHiddenPagesLite } from "@/utils/hiddenPages";
 import { usePathname } from "next/navigation";
 
 // Les sous-pages services/événements n'existent pas (encore) :
@@ -43,7 +43,7 @@ export const Footer = () => {
 
   useEffect(() => {
     const loadSettings = () => {
-      getHiddenPages().then(setHiddenPages);
+      getHiddenPagesLite().then(setHiddenPages);
     };
     loadSettings();
     window.addEventListener("meb_settings_updated", loadSettings);

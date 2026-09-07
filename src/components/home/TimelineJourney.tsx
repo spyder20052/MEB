@@ -70,13 +70,14 @@ export const TimelineJourney = () => {
           className="w-full h-[350px] md:h-[400px] lg:h-[500px] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden relative mb-12 group border border-meb-dark-border"
         >
           <Image
-            src="/images/journey/Image collée.jpg"
+            src="/images/journey/image-collee.jpg"
             alt="Processus MEB - Accompagnement"
             fill
+            loading="lazy"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
             className="object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 hover:scale-105"
             style={{ objectPosition: 'center 30%' }}
-          />
+           />
 
           {/* Protective Gradient overlay ensuring text readability even on hover */}
           <div className="absolute inset-0 bg-gradient-to-t from-meb-dark/95 via-meb-dark/50 to-meb-dark/10 transition-opacity duration-500 pointer-events-none" />

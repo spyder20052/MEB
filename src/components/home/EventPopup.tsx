@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { X, ArrowDownLeft } from "@phosphor-icons/react";
-import { getEvents } from "@/utils/storage";
 
 interface Event {
   num: string;
@@ -26,7 +25,9 @@ export function EventPopup() {
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    getEvents().then((storedEvents) => {
+    // Import differe : le popup s'affiche apres un delai, inutile de
+    // charger le client Supabase dans le bundle initial de l'accueil.
+    import("@/utils/storage").then(({ getEvents }) => getEvents()).then((storedEvents) => {
       if (cancelled) return;
 
       // Determine closest upcoming event
