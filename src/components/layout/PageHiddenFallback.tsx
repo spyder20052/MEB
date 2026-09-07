@@ -16,8 +16,8 @@ export const PageHiddenFallback: React.FC<PageHiddenFallbackProps> = ({ pageName
       <div className="absolute inset-0 tech-lines-light opacity-[0.04] pointer-events-none" />
 
       {/* Background Glowing Blobs */}
-      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-[#00B140]/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#E63946]/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="meb-glow absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full pointer-events-none" style={{ "--glow": "#00B140", "--glow-opacity": 0.1 } as React.CSSProperties} />
+      <div className="meb-glow absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full pointer-events-none" style={{ "--glow": "#E63946", "--glow-opacity": 0.05 } as React.CSSProperties} />
 
       {/* Main Glassmorphic Card */}
       <motion.div

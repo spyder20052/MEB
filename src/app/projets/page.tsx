@@ -8,10 +8,6 @@ import { ArrowUpRight, ArrowRight, Sparkle, FileText, ChartBar, PaperPlaneRight 
 import { getProjects, ProjectItem } from "@/utils/storage";
 import { usePageHidden } from "@/hooks/usePageHidden";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function ProjetsPage() {
   const isPageHidden = usePageHidden("/projets");
@@ -45,18 +41,10 @@ export default function ProjetsPage() {
     return () => window.removeEventListener("meb_settings_updated", load);
   }, []);
 
-  useEffect(() => {
-    if (!headerRef.current) return;
-
-    // Animation d'apparition au scroll retiree : le texte etait masque
-    // jusqu'au declenchement, ce qui provoquait des a-coups.
-    const lines = headerRef.current.querySelectorAll(".reveal-line");
-    gsap.set(lines, { y: "0%", opacity: 1 });
-
-    return () => {
-      ScrollTrigger.getAll().forEach(t => t.kill());
-    };
-  }, []);
+  // L'animation d'apparition au scroll a ete retiree : les .reveal-line
+  // sont visibles par defaut (aucun style ne les masque). Le gsap.set()
+  // qui restait ne faisait donc rien, mais imposait le chargement de
+  // GSAP + ScrollTrigger (~120 Ko) avant l'affichage de la page.
 
   useEffect(() => {
     const checkMobile = () => {

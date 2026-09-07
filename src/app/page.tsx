@@ -1,13 +1,27 @@
+import dynamic from "next/dynamic";
+
 import { HeroSection } from "@/components/home/HeroSection";
 import { SloganSection } from "@/components/home/SloganSection";
-import { ProblemSection } from "@/components/home/ProblemSection";
 import { SolutionPillars } from "@/components/home/SolutionPillars";
-import { TimelineJourney } from "@/components/home/TimelineJourney";
 import { ServicesPreview } from "@/components/home/ServicesPreview";
-import { ImpactCounter } from "@/components/home/ImpactCounter";
-import { Testimonials } from "@/components/home/Testimonials";
 import { ContactCTA } from "@/components/home/ContactCTA";
-import { EventPopup } from "@/components/home/EventPopup";
+
+// Sections situées sous la ligne de flottaison : leur JS n'a aucune raison
+// de retarder le premier affichage. `ProblemSection` embarque un accordéon
+// animé et EventPopup le client Supabase ; les charger à part réduit
+// d'autant le bundle initial de l'accueil.
+const ProblemSection = dynamic(() =>
+  import("@/components/home/ProblemSection").then((m) => m.ProblemSection)
+);
+const TimelineJourney = dynamic(() =>
+  import("@/components/home/TimelineJourney").then((m) => m.TimelineJourney)
+);
+const ImpactCounter = dynamic(() =>
+  import("@/components/home/ImpactCounter").then((m) => m.ImpactCounter)
+);
+const EventPopup = dynamic(() =>
+  import("@/components/home/EventPopup").then((m) => m.EventPopup)
+);
 
 export default function Home() {
   return (
@@ -19,7 +33,6 @@ export default function Home() {
       <TimelineJourney />
       <ServicesPreview />
       <ImpactCounter />
-      {/* <Testimonials /> */}
       <ContactCTA />
       <EventPopup />
     </div>

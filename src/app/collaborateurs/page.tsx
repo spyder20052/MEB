@@ -4,12 +4,8 @@ import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowUpRight } from "@phosphor-icons/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { usePageHidden } from "@/hooks/usePageHidden";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function CollaborateursPage() {
   const isPageHidden = usePageHidden("/collaborateurs");
@@ -87,53 +83,28 @@ export default function CollaborateursPage() {
     },
   ];
 
+  // Le defilement est joue par l'animation CSS .meb-marquee-track : on ne
+  // calcule ici que sa duree, pour garder la vitesse d'origine (~55 px/s)
+  // quel que soit le nombre de partenaires. La pause au survol et le
+  // respect de « mouvement reduit » sont geres en CSS.
   useEffect(() => {
-    if (!trackRef.current) return;
     const track = trackRef.current;
+    if (!track) return;
 
-    // Calculate total width of one set of logos (1/3 of total width)
-    const totalWidth = track.scrollWidth;
-    const scrollDistance = totalWidth / 3;
-
-    // Set initial position
-    gsap.set(track, { x: 0 });
-
-    // Continuous marquee tween
-    // Vitesse constante (~55 px/s) plutot qu'une duree fixe : la bande
-    // defile au meme rythme quel que soit le nombre de partenaires.
-    const tween = gsap.to(track, {
-      x: -scrollDistance,
-      duration: Math.max(20, scrollDistance / 55),
-      ease: "none",
-      repeat: -1,
-      paused: false,
-    });
-
-    // Pause on hover for enhanced user interaction
-    const onMouseEnter = () => tween.pause();
-    const onMouseLeave = () => tween.play();
-
-    track.addEventListener("mouseenter", onMouseEnter);
-    track.addEventListener("mouseleave", onMouseLeave);
-
-    return () => {
-      tween.kill();
-      track.removeEventListener("mouseenter", onMouseEnter);
-      track.removeEventListener("mouseleave", onMouseLeave);
+    const setDuration = () => {
+      // La piste contient 3 copies de la liste ; un cycle correspond a un tiers.
+      const cycle = track.scrollWidth / 3;
+      if (cycle > 0) {
+        track.style.setProperty("--duration", `${Math.max(20, cycle / 55)}s`);
+      }
     };
-  }, []);
 
-  useEffect(() => {
-    if (!textRef.current) return;
-    
-    // Animation d'apparition au scroll retiree : les caracteres etaient
-    // masques jusqu'au declenchement, ce qui provoquait des a-coups.
-    const chars = textRef.current.querySelectorAll(".char");
-    gsap.set(chars, { y: 0, opacity: 1 });
+    setDuration();
 
-    return () => {
-      ScrollTrigger.getAll().forEach(t => t.kill());
-    };
+    // Les logos sont des SVG inline : la largeur est deja connue au montage,
+    // mais une rotation d'ecran change la mise en page.
+    window.addEventListener("resize", setDuration);
+    return () => window.removeEventListener("resize", setDuration);
   }, []);
 
   if (isPageHidden) {
@@ -148,8 +119,8 @@ export default function CollaborateursPage() {
         
         {/* Soft background glow accents */}
         <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
-          <div className="absolute top-[20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-[#00B140]/5 blur-3xl" />
-          <div className="absolute bottom-[10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-[#F5C518]/5 blur-3xl" />
+          <div className="meb-glow absolute top-[20%] left-[-10%] w-[50vw] h-[50vw] rounded-full pointer-events-none" style={{ "--glow": "#00B140", "--glow-opacity": 0.05 } as React.CSSProperties} />
+          <div className="meb-glow absolute bottom-[10%] right-[-10%] w-[50vw] h-[50vw] rounded-full pointer-events-none" style={{ "--glow": "#F5C518", "--glow-opacity": 0.05 } as React.CSSProperties} />
         </div>
 
         <div className="max-w-[1240px] mx-auto px-5 sm:px-8 relative z-10">
@@ -190,7 +161,7 @@ export default function CollaborateursPage() {
             {/* GSAP Scrolling Track */}
             <div 
               ref={trackRef} 
-              className="flex gap-20 w-max items-center py-4"
+              className="meb-marquee-track flex gap-20 w-max items-center py-4"
             >
               {/* Render 3 copies of the array to guarantee loop continuity */}
               {[...partners, ...partners, ...partners].map((partner, index) => (

@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ArrowRight, EnvelopeSimple, Phone, MapPin } from "@phosphor-icons/react";
 
 export const ContactCTA = () => {
@@ -15,12 +14,8 @@ export const ContactCTA = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 lg:h-[450px]">
 
           {/* Box 1: Large Main Slogan (Col 1-2) */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:col-span-2 bg-white rounded-xl p-8 md:p-12 flex flex-col justify-between relative overflow-hidden group cursor-pointer lg:h-full border border-meb-dark-border shadow-2xl"
-          >
+          <div
+            className="md:col-span-2 bg-white rounded-xl p-8 md:p-12 flex flex-col justify-between relative overflow-hidden group cursor-pointer lg:h-full border border-meb-dark-border shadow-2xl">
             <div className="relative z-10">
               <span className="font-heading text-xs font-bold tracking-widest uppercase text-meb-green mb-6 block">
                 Prêt à accélérer ?
@@ -40,15 +35,11 @@ export const ContactCTA = () => {
                 <ArrowRight size={18} weight="bold" />
               </button>
             </div>
-          </motion.div>
+          </div>
 
           {/* Box 2: "Des questions?" (Col 3) */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="lg:col-span-1 bg-[#eabe07] rounded-xl p-6 md:p-8 flex flex-col justify-end relative overflow-hidden group cursor-pointer lg:h-full"
-          >
+          <div
+            className="lg:col-span-1 bg-[#eabe07] rounded-xl p-6 md:p-8 flex flex-col justify-end relative overflow-hidden group cursor-pointer lg:h-full">
             <div className="absolute inset-0 bg-meb-dark translate-y-[100%] group-hover:translate-y-[0%] transition-transform duration-500 ease-out origin-bottom" />
 
             {/* Crosshair decoration */}
@@ -62,45 +53,34 @@ export const ContactCTA = () => {
                 <span className="font-light italic outline-2">Écrivez-nous.</span>
               </h3>
             </div>
-          </motion.div>
+          </div>
 
           {/* Box 3: Contact Details (Col 4) */}
           <div className="lg:col-span-1 flex flex-col gap-2 md:gap-3 lg:h-full">
 
             {/* Email Case */}
-            <motion.a
+            <a
               href="mailto:contact@entrepreneurbenin.pro"
-              initial={false}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex-1 bg-meb-dark border border-meb-dark-border rounded-xl p-5 flex flex-col justify-between group hover:border-meb-gray-600 transition-colors"
-            >
+              className="flex-1 bg-meb-dark border border-meb-dark-border rounded-xl p-5 flex flex-col justify-between group hover:border-meb-gray-600 transition-colors">
               <div className="w-8 h-8 rounded-full bg-[#eabe07]/10 flex items-center justify-center text-[#eabe07] group-hover:bg-[#eabe07] group-hover:text-meb-dark transition-colors">
                 <EnvelopeSimple size={16} weight="fill" />
               </div>
               <span className="font-mono text-xs text-white/60 tracking-tight group-hover:text-white transition-colors">contact@entrepreneurbenin.pro</span>
-            </motion.a>
+            </a>
 
             {/* Phone Case */}
-            <motion.a
+            <a
               href="tel:+2290160007007"
-              initial={false}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="flex-1 bg-meb-dark border border-meb-dark-border rounded-xl p-5 flex flex-col justify-between group hover:border-meb-gray-600 transition-colors"
-            >
+              className="flex-1 bg-meb-dark border border-meb-dark-border rounded-xl p-5 flex flex-col justify-between group hover:border-meb-gray-600 transition-colors">
               <div className="w-8 h-8 rounded-full bg-[#c61827]/10 flex items-center justify-center text-[#c61827] group-hover:bg-[#c61827] group-hover:text-white transition-colors">
                 <Phone size={16} weight="fill" />
               </div>
               <span className="font-mono text-xs text-white/60 tracking-tight group-hover:text-white transition-colors">+229 01 60 00 70 07</span>
-            </motion.a>
+            </a>
 
             {/* Location Case */}
-            <motion.div
-              initial={false}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="flex-[1.5] bg-meb-dark border border-meb-dark-border rounded-xl p-5 flex flex-col justify-between group hover:border-[#eabe07]/30 transition-colors"
-            >
+            <div
+              className="flex-[1.5] bg-meb-dark border border-meb-dark-border rounded-xl p-5 flex flex-col justify-between group hover:border-[#eabe07]/30 transition-colors">
               <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 group-hover:text-[#eabe07] transition-colors">
                 <MapPin size={16} weight="fill" />
               </div>
@@ -108,7 +88,7 @@ export const ContactCTA = () => {
                 Akpakpa, Cinéma Concorde<br />
                 Cotonou, République du Bénin
               </p>
-            </motion.div>
+            </div>
 
           </div>
 

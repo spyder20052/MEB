@@ -113,11 +113,7 @@ export const Testimonials = () => {
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-16 gap-8">
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+          <div>
             <span className="font-heading text-sm font-bold tracking-widest uppercase text-meb-green mb-4 block">
               La Voix des Entrepreneurs
             </span>
@@ -125,15 +121,11 @@ export const Testimonials = () => {
               Ils réinventent<br />
               <span className="font-light text-meb-gray-500">l&apos;économie.</span>
             </h2>
-          </motion.div>
-          <motion.p
-            initial={false}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="font-body text-sm md:text-base text-meb-gray-500 max-w-xs border-l-2 border-meb-gray-300 pl-4 leading-relaxed md:pb-4"
-          >
+          </div>
+          <p
+            className="font-body text-sm md:text-base text-meb-gray-500 max-w-xs border-l-2 border-meb-gray-300 pl-4 leading-relaxed md:pb-4">
             Des centaines d&apos;entrepreneurs ont transformé leur trajectoire grâce au MEB.
-          </motion.p>
+          </p>
         </div>
 
         {/* Tabs */}

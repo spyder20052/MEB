@@ -9,10 +9,6 @@ import { ArrowUpRight, ArrowDownLeft, X, Check, Calendar, MapPin, Camera, CaretD
 import { getEvents, EventItem, DEFAULT_EVENTS } from "@/utils/storage";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
 import { usePageHidden } from "@/hooks/usePageHidden";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function EvenementsPage() {
   const isPageHidden = usePageHidden("/evenements");
@@ -370,18 +366,8 @@ export default function EvenementsPage() {
     }
   };
 
-  useEffect(() => {
-    if (!headerRef.current) return;
-
-    // Animation d'apparition au scroll retiree : le texte etait masque
-    // jusqu'au declenchement, ce qui provoquait des a-coups.
-    const lines = headerRef.current.querySelectorAll(".reveal-line");
-    gsap.set(lines, { y: "0%", opacity: 1 });
-
-    return () => {
-      ScrollTrigger.getAll().forEach(t => t.kill());
-    };
-  }, []);
+  // Idem /projets : l'apparition au scroll a ete retiree, le gsap.set()
+  // restant n'avait plus d'effet et faisait charger GSAP pour rien.
 
   const openModal = (event: EventItem) => {
     setSelectedEvent(event);

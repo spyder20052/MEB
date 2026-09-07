@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import type { CSSProperties } from "react";
+
 import Image from "next/image";
 import { ArrowDownRight } from "@phosphor-icons/react";
 
@@ -33,42 +34,27 @@ export const TimelineJourney = () => {
         {/* Section Header - Restored to match standard site architecture */}
         <div className="mb-12 md:mb-16 flex flex-col lg:flex-row lg:items-end justify-between gap-8">
           <div className="max-w-3xl">
-            <motion.span
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              className="font-heading text-sm font-bold tracking-widest uppercase text-meb-green mb-4 block"
-            >
+            <span
+              className="font-heading text-sm font-bold tracking-widest uppercase text-meb-green mb-4 block">
               Le Parcours MEB
-            </motion.span>
-            <motion.h2
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="font-heading text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-white font-bold"
-            >
+            </span>
+            <h2
+              className="font-heading text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-white font-bold">
               De l&apos;idée vers <br />
               <span className="font-light text-meb-gray-400">la réalisation.</span>
-            </motion.h2>
+            </h2>
           </div>
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:pb-4"
-          >
+          <div
+            className="lg:pb-4">
             <p className="font-body text-sm md:text-lg text-meb-gray-400 max-w-sm border-l-2 border-meb-dark-border pl-4 md:pl-6 leading-relaxed">
               Un accompagnement structuré et personnalisé, allant de l&apos;évaluation initiale à l&apos;exécution concrète sur le terrain.
             </p>
-          </motion.div>
+          </div>
         </div>
 
         {/* Panoramic Cinematic Image */}
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="w-full h-[350px] md:h-[400px] lg:h-[500px] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden relative mb-12 group border border-meb-dark-border"
-        >
+        <div
+          className="w-full h-[350px] md:h-[400px] lg:h-[500px] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden relative mb-12 group border border-meb-dark-border">
           <Image
             src="/images/journey/image-collee.jpg"
             alt="Processus MEB - Accompagnement"
@@ -89,7 +75,7 @@ export const TimelineJourney = () => {
               <span className="text-meb-green font-bold">au centre du processus.</span>
             </h2>
           </div>
-        </motion.div>
+        </div>
 
         {/* 3-Column Symmetrical Grid for Steps */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8">
@@ -126,16 +112,13 @@ export const TimelineJourney = () => {
             }
 
             return (
-              <motion.div
+              <div
                 key={index}
-                initial={false}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 + (index * 0.15), ease: "easeOut" }}
                 className={`rounded-[1.5rem] md:rounded-[2rem] p-8 md:p-10 lg:p-12 flex flex-col justify-between relative overflow-hidden group cursor-pointer border transition-colors duration-500 min-h-[320px] md:min-h-[420px] ${bgClass}`}
               >
                 {/* INTERACTIVE BACKGROUNDS */}
                 {isDark && (
-                  <div className="absolute -top-20 -right-20 w-[300px] h-[300px] bg-meb-green/10 rounded-full blur-[60px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <div className="meb-glow absolute -top-20 -right-20 w-[300px] h-[300px] rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" style={{ "--glow": "#00B140", "--glow-opacity": 0.1 } as CSSProperties} />
                 )}
                 {isWhite && (
                   <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-gradient-to-bl from-meb-gray-200 to-transparent rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
@@ -161,7 +144,7 @@ export const TimelineJourney = () => {
                     </p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>

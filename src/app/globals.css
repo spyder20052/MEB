@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600&family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -21,10 +20,10 @@
   --color-meb-gray-700: #333333;
 
   /* ── Typography ── */
-  --font-heading: "Poppins", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", monospace;
-  --font-serif: "Playfair Display", serif;
+  --font-heading: var(--font-poppins), system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-serif: Georgia, "Times New Roman", serif;
 
   /* ── Shadows ── */
   --shadow-none: 0 0 0 rgba(0,0,0,0);
@@ -36,9 +35,14 @@
    ═══════════════════════════════════════ */
 
 html {
-  scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -153,3 +157,160 @@ body {
 
 
 
+
+/* ═══════════════════════════════════════
+   LUEURS D'ARRIÈRE-PLAN
+   ═══════════════════════════════════════ */
+
+/*
+ * Remplace les blobs `bg-<couleur> rounded-full blur-[120px]`.
+ *
+ * Un `filter: blur(120px)` sur un bloc de 800x800 force le navigateur à
+ * peindre la surface puis à la reflouter dans une couche séparée, sur une
+ * zone élargie du rayon de flou : c'est l'effet le plus coûteux de la page,
+ * et il s'additionnait (2 lueurs dans le hero, 2 dans la navbar mobile...).
+ * Sur mobile cela suffisait à rendre le défilement saccadé.
+ *
+ * Un dégradé radial produit le même halo diffus, mais il est peint
+ * directement par le compositeur : aucun filtre, aucune couche
+ * supplémentaire, coût négligeable.
+ *
+ * La couleur se pilote par `--glow`, l'opacité par `--glow-opacity`.
+ */
+.meb-glow {
+  --glow: #00B140;
+  --glow-opacity: 0.10;
+  background-image: radial-gradient(
+    closest-side circle,
+    color-mix(in srgb, var(--glow) calc(var(--glow-opacity) * 100%), transparent),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════
+   APPARITION DU HERO (CSS, sans GSAP)
+   ═══════════════════════════════════════
+
+   Les hero de /communaute et /prendre-rdv jouaient cette apparition avec
+   une timeline GSAP. Charger GSAP (~90 Ko) uniquement pour un fondu joué
+   une fois au chargement retardait l'affichage de la page ; en CSS
+   l'animation démarre dès le premier rendu, sans JavaScript.
+
+   Le décalage entre les lignes se règle par `--i` sur chaque élément. */
+
+@keyframes meb-rise {
+  from { transform: translateY(105%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes meb-rise-soft {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.hero-reveal,
+.hero-meta-reveal {
+  /* Etat final par defaut : si l'animation ne joue pas (mouvement reduit,
+     JS indisponible), le texte reste lisible. */
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-reveal {
+    animation: meb-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 0.12s);
+  }
+
+  .hero-meta-reveal {
+    animation: meb-rise-soft 0.45s cubic-bezier(0.33, 1, 0.68, 1) backwards;
+    animation-delay: calc(0.2s + var(--i, 0) * 0.09s);
+  }
+}
+
+/* Apparition en cascade des enfants directs d'un conteneur (formulaire de
+   /prendre-rdv) : remplace un `stagger` GSAP sur `contentRef.children`.
+   `nth-child` fournit le décalage sans avoir à annoter chaque enfant. */
+@media (prefers-reduced-motion: no-preference) {
+  .meb-stagger-children > * {
+    animation: meb-rise-soft 0.5s cubic-bezier(0.33, 1, 0.68, 1) backwards;
+  }
+  .meb-stagger-children > *:nth-child(1) { animation-delay: 0.15s; }
+  .meb-stagger-children > *:nth-child(2) { animation-delay: 0.25s; }
+  .meb-stagger-children > *:nth-child(3) { animation-delay: 0.35s; }
+  .meb-stagger-children > *:nth-child(4) { animation-delay: 0.45s; }
+  .meb-stagger-children > *:nth-child(n + 5) { animation-delay: 0.55s; }
+}
+
+/* ═══════════════════════════════════════
+   BANDEAU DÉFILANT (partenaires)
+   ═══════════════════════════════════════
+
+   Auparavant un tween GSAP infini animait `x` en JavaScript : à chaque
+   frame, GSAP écrivait un transform, ce qui gardait le fil principal
+   occupé en permanence — coûteux sur mobile, et la page ne « repose »
+   jamais. En CSS l'animation est déléguée au compositeur, hors du fil
+   principal, et se met en pause d'elle-même hors écran.
+
+   La piste contient 3 copies de la liste : translater d'un tiers
+   ramène exactement à la position de départ, d'où une boucle continue. */
+
+@keyframes meb-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-33.3333%, 0, 0); }
+}
+
+.meb-marquee-track {
+  /* `--duration` est calculée côté composant d'après la largeur réelle,
+     pour conserver une vitesse constante quel que soit le nombre de logos. */
+  animation: meb-marquee var(--duration, 40s) linear infinite;
+  will-change: transform;
+}
+
+.meb-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meb-marquee-track {
+    animation: none;
+  }
+}
+
+/* ═══════════════════════════════════════
+   BARRE DE NAVIGATION
+   ═══════════════════════════════════════
+
+   La barre et le menu mobile utilisaient framer-motion. Comme le layout
+   racine rend la Navbar, framer-motion se retrouvait dans le lot initial
+   de CHAQUE page (~50 Ko) pour trois fondus joués une seule fois.
+   En CSS l'effet est identique et le JavaScript disparaît. */
+
+@keyframes meb-drop-in {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .meb-navbar-in {
+    animation: meb-drop-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  /* Ouverture du panneau mobile. La fermeture est immediate : sans
+     AnimatePresence le noeud est demonte aussitot, et un panneau
+     plein ecran qui disparait net ne se remarque pas. */
+  .meb-menu-in {
+    animation: meb-drop-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+}
+
+/* Apparition du hero d'accueil. Ce composant est le premier affiché du
+   site : tant qu'il importait framer-motion, la bibliothèque entière
+   (~50 Ko) faisait partie du lot initial de la page d'accueil, pour deux
+   fondus joués une fois. En CSS ils démarrent au premier rendu. */
+@media (prefers-reduced-motion: no-preference) {
+  .meb-hero-fade {
+    animation: meb-rise-soft 0.45s ease-out backwards;
+    animation-delay: calc(var(--i, 0) * 0.1s);
+  }
+}

@@ -1,7 +1,8 @@
 "use client";
 
+import type { CSSProperties } from "react";
+
 import { useState } from "react";
-import { motion } from "framer-motion";
 import Image from "next/image";
 
 export const HeroSection = () => {
@@ -13,17 +14,14 @@ export const HeroSection = () => {
     <section className="relative w-full min-h-screen bg-meb-dark pt-32 pb-4 sm:pb-16 overflow-hidden flex flex-col justify-center">
 
       {/* Lueur d'arrière-plan organique et très subtile */}
-      <div className="absolute top-1/4 -right-[20%] w-[800px] h-[800px] bg-meb-green/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 -left-[10%] w-[600px] h-[600px] bg-meb-green/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="meb-glow absolute top-1/4 -right-[20%] w-[800px] h-[800px] rounded-full pointer-events-none" style={{ "--glow": "#00B140", "--glow-opacity": 0.1 } as React.CSSProperties} />
+      <div className="meb-glow absolute bottom-0 -left-[10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{ "--glow": "#00B140", "--glow-opacity": 0.05 } as React.CSSProperties} />
 
       <div className="max-w-[1240px] mx-auto px-5 sm:px-8 relative z-10 w-full flex flex-col items-center mt-12">
 
         {/* Massive Centered Headline */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="flex flex-col items-center text-center max-w-4xl mx-auto mb-12 sm:mb-16"
+        <div
+          className="meb-hero-fade flex flex-col items-center text-center max-w-4xl mx-auto mb-12 sm:mb-16"
         >
           <h1 className="font-heading text-[48px] sm:text-[64px] md:text-[80px] lg:text-[84px] leading-[1.05] tracking-tight text-white mb-6">
             <span className="font-bold">L&apos;Écosystème Actif Du</span> <br />
@@ -33,14 +31,12 @@ export const HeroSection = () => {
             Centre d&apos;innovation d&apos;avant-garde, concentré sur les solutions d&apos;accompagnement et la technologie
             qui dynamisent une croissance durable et connectée pour les PME.
           </p>
-        </motion.div>
+        </div>
 
         {/* Ampdrive Exact Bento Grid - Responsive & Animé */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
-          className="w-full grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 lg:h-[420px]"
+        <div
+          style={{ "--i": 1 } as CSSProperties}
+          className="meb-hero-fade w-full grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 lg:h-[420px]"
         >
 
           {/* Column 1 */}
@@ -139,7 +135,7 @@ export const HeroSection = () => {
             </div>
           </div>
 
-        </motion.div>
+        </div>
 
       </div>
     </section>

@@ -8,7 +8,6 @@ import {
   InstagramLogo,
   CaretRight
 } from "@phosphor-icons/react";
-import { motion } from "framer-motion";
 import { getHiddenPagesLite } from "@/utils/hiddenPages";
 import { usePathname } from "next/navigation";
 
@@ -89,7 +88,7 @@ export const Footer = () => {
       <div className="absolute inset-0 tech-lines-light opacity-[0.03] pointer-events-none" />
 
       {/* Massive Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-meb-green/5 rounded-full blur-[150px] pointer-events-none" />
+      <div className="meb-glow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none" style={{ "--glow": "#00B140", "--glow-opacity": 0.05 } as React.CSSProperties} />
 
       <div className="max-w-[1240px] mx-auto px-5 sm:px-8 relative z-10">
 
@@ -212,15 +211,14 @@ export const Footer = () => {
                 { icon: <LinkedinLogo size={18} weight="fill" />, label: "LinkedIn" },
                 { icon: <InstagramLogo size={18} weight="fill" />, label: "Instagram" },
               ].map((s) => (
-                <motion.a
+                <a
                   key={s.label}
                   href="#"
                   aria-label={s.label}
-                  whileHover={{ y: -4, backgroundColor: "var(--color-meb-green)", color: "#060D03" }}
-                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/40 transition-colors duration-300"
+                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/40 transition-all duration-300 hover:-translate-y-1 hover:bg-meb-green hover:text-[#060D03]"
                 >
                   {s.icon}
-                </motion.a>
+                </a>
               ))}
             </div>
           </div>

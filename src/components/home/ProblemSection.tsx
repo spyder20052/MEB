@@ -35,7 +35,7 @@ export const ProblemSection = () => {
     <section className="py-24 md:py-32 bg-meb-dark w-full overflow-hidden relative">
 
       {/* Decorative element */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#eabe07]/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="meb-glow absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none" style={{ "--glow": "#eabe07", "--glow-opacity": 0.05 } as React.CSSProperties} />
 
       <div className="max-w-[1240px] mx-auto px-5 sm:px-8 relative z-10">
 

@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { CaretDown, Check } from "@phosphor-icons/react";
-import gsap from "gsap";
 import { usePageHidden } from "@/hooks/usePageHidden";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
 // Schéma Zod partagé avec la route API : mêmes règles client et serveur.
@@ -22,35 +21,9 @@ export default function PrendreRdvPage() {
   const honeypotRef = useRef<HTMLInputElement>(null);
 
 
-  useEffect(() => {
-    if (!titleRef.current || !contentRef.current) return;
-
-    const revealText = titleRef.current.querySelector(".hero-reveal");
-    const animElements = contentRef.current.children;
-
-    gsap.set(revealText, { y: "105%", opacity: 0 });
-    gsap.set(animElements, { y: 25, opacity: 0 });
-
-    const tl = gsap.timeline();
-
-    tl.to(revealText, {
-      y: "0%",
-      opacity: 1,
-      duration: 1.2,
-      ease: "power4.out",
-    })
-    .to(animElements, {
-      y: 0,
-      opacity: 1,
-      duration: 0.8,
-      stagger: 0.1,
-      ease: "power3.out",
-    }, "-=0.7");
-
-    return () => {
-      tl.kill();
-    };
-  }, []);
+  // Apparition du titre et du formulaire desormais en CSS
+  // (.hero-reveal et .meb-stagger-children) : GSAP n'etait charge que
+  // pour ce fondu joue une seule fois au chargement.
 
   const {
     register,
@@ -119,7 +92,7 @@ export default function PrendreRdvPage() {
                 </h1>
               </div>
 
-              <div ref={contentRef} className="grid grid-cols-1 md:grid-cols-12 gap-12 sm:gap-16">
+              <div ref={contentRef} className="meb-stagger-children grid grid-cols-1 md:grid-cols-12 gap-12 sm:gap-16">
                 
                 {/* Left Column: Metadata */}
                 <div className="md:col-span-4 flex flex-col gap-10 font-mono text-xs sm:text-sm text-[#060D03]/60 tracking-widest uppercase">

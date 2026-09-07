@@ -4,12 +4,9 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { usePageHidden } from "@/hooks/usePageHidden";
 import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
 
-gsap.registerPlugin(ScrollTrigger);
 import { 
   Sparkle, 
   ArrowRight, 
@@ -140,49 +137,9 @@ export default function CommunautePage() {
   const heroTitleRef = useRef<HTMLDivElement>(null);
   const heroMetaRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!heroTitleRef.current || !heroMetaRef.current) return;
-
-    const titleLines = heroTitleRef.current.querySelectorAll(".hero-reveal");
-    const metaElements = heroMetaRef.current.querySelectorAll(".hero-meta-reveal");
-
-    gsap.set(titleLines, { y: "105%", opacity: 0 });
-    gsap.set(metaElements, { y: 20, opacity: 0 });
-
-    const tl = gsap.timeline();
-
-    tl.to(titleLines, {
-      y: "0%",
-      opacity: 1,
-      duration: 0.3,
-      stagger: 0.2,
-      ease: "power4.out",
-    })
-    .to(metaElements, {
-      y: 0,
-      opacity: 1,
-      duration: 0.3,
-      stagger: 0.15,
-      ease: "power3.out",
-    }, "-=0.6");
-
-    return () => {
-      tl.kill();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!sectionHeaderRef.current) return;
-
-    // Animation d'apparition au scroll retiree : le texte etait masque
-    // jusqu'au declenchement, ce qui provoquait des a-coups.
-    const lines = sectionHeaderRef.current.querySelectorAll(".reveal-line");
-    gsap.set(lines, { y: "0%", opacity: 1 });
-
-    return () => {
-      ScrollTrigger.getAll().forEach(t => t.kill());
-    };
-  }, []);
+  // L'apparition du hero est desormais jouee en CSS (.hero-reveal /
+  // .hero-meta-reveal dans globals.css) : meme effet, mais sans charger
+  // GSAP + ScrollTrigger (~120 Ko) avant le premier affichage.
 
   useEffect(() => {
     const handleResize = () => {
@@ -226,8 +183,8 @@ export default function CommunautePage() {
       <section className="bg-[#060D03] text-[#F9F9F0] pt-48 pb-20 px-5 sm:px-8 relative overflow-hidden flex flex-col justify-between min-h-[500px] border-b border-white/[0.05]">
         
         {/* Glow ambient backgrounds */}
-        <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-meb-green/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-[#eabe07]/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="meb-glow absolute top-1/3 left-1/4 w-96 h-96 rounded-full pointer-events-none" style={{ "--glow": "#00B140", "--glow-opacity": 0.1 } as React.CSSProperties} />
+        <div className="meb-glow absolute bottom-10 right-1/4 w-80 h-80 rounded-full pointer-events-none" style={{ "--glow": "#eabe07", "--glow-opacity": 0.05 } as React.CSSProperties} />
 
         <div className="max-w-[1240px] w-full mx-auto flex-1 flex flex-col justify-between relative z-10">
           
@@ -237,14 +194,14 @@ export default function CommunautePage() {
             {/* Row 1: "Entreprendre" */}
             <div className="relative self-start pl-8 sm:pl-16 overflow-hidden">
               <h1 className="font-heading font-black text-[11vw] sm:text-[8vw] leading-[0.9] tracking-tighter text-[#F9F9F0] uppercase">
-                <span className="hero-reveal inline-block">Entreprendre</span>
+                <span className="hero-reveal inline-block" style={{ "--i": 0 } as React.CSSProperties}>Entreprendre</span>
               </h1>
             </div>
 
             {/* Row 2: "ensemble" */}
             <div className="relative self-end pr-8 sm:pr-16 mt-2 overflow-hidden">
               <h1 className="font-heading font-black text-[11vw] sm:text-[8vw] leading-[0.9] tracking-tighter text-[#F9F9F0] uppercase italic">
-                <span className="hero-reveal inline-block">ensemble.</span>
+                <span className="hero-reveal inline-block" style={{ "--i": 1 } as React.CSSProperties}>ensemble.</span>
               </h1>
             </div>
 
@@ -254,14 +211,14 @@ export default function CommunautePage() {
           <div ref={heroMetaRef} className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-8 pt-8 border-t border-white/10">
             
             {/* Left side: description */}
-            <div className="hero-meta-reveal font-mono text-[10px] sm:text-xs tracking-widest text-white/60 max-w-sm uppercase leading-relaxed">
+            <div style={{ "--i": 0 } as React.CSSProperties} className="hero-meta-reveal font-mono text-[10px] sm:text-xs tracking-widest text-white/60 max-w-sm uppercase leading-relaxed">
               <p>
                 MEB HUB — Le réseau collaboratif des leaders, innovateurs et créateurs de value du Bénin.
               </p>
             </div>
 
             {/* Right side: Border button */}
-            <div className="hero-meta-reveal">
+            <div style={{ "--i": 1 } as React.CSSProperties} className="hero-meta-reveal">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

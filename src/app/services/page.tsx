@@ -308,7 +308,7 @@ export default function ServicesPage() {
                 )}
                 {/* Green glow on dark card */}
                 {isDark && (
-                  <div className="absolute -top-20 -right-20 w-64 h-64 bg-meb-green/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                  <div className="meb-glow absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" style={{ "--glow": "#00B140", "--glow-opacity": 0.1 } as React.CSSProperties} />
                 )}
 
                 <div className="relative z-10 p-8 md:p-10 flex flex-col h-full justify-between">
@@ -413,11 +413,8 @@ export default function ServicesPage() {
       {/* ── PROCESS ──────────────────────────────────── */}
       <section className="max-t border-t border-meb-gray-200 py-24 md:py-32">
         <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-16"
-          >
+          <div
+            className="mb-16">
             <span className="font-mono text-[11px] font-bold tracking-[0.25em] uppercase text-meb-green mb-4 block">
               Comment ça marche
             </span>
@@ -425,7 +422,7 @@ export default function ServicesPage() {
               Notre processus<br />
               <span className="text-meb-gray-400">en 4 étapes.</span>
             </h2>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {process.map((p, i) => (
@@ -454,11 +451,8 @@ export default function ServicesPage() {
       {/* ── BOTTOM CTA ───────────────────────────────── */}
       <section className="py-24 md:py-32">
         <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-meb-green rounded-[2rem] md:rounded-[3rem] p-10 md:p-20 flex flex-col md:flex-row items-start md:items-end justify-between gap-10 relative overflow-hidden group"
-          >
+          <div
+            className="bg-meb-green rounded-[2rem] md:rounded-[3rem] p-10 md:p-20 flex flex-col md:flex-row items-start md:items-end justify-between gap-10 relative overflow-hidden group">
             {/* Dark sweep */}
             <div className="absolute inset-0 bg-meb-dark translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-in-out pointer-events-none" />
 
@@ -481,7 +475,7 @@ export default function ServicesPage() {
               Réserver ma session
               <ArrowUpRightIcon size={18} weight="bold" />
             </Link>
-          </motion.div>
+          </div>
         </div>
       </section>
 

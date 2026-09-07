@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
 import { ListIcon, XIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { usePathname } from "next/navigation";
 
@@ -27,9 +26,35 @@ export const Navbar = () => {
   const isLoginPage = pathname === "/dashboard";
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", fn, { passive: true });
-    return () => window.removeEventListener("scroll", fn);
+    // `setScrolled` etait appele a chaque evenement de defilement : React
+    // comparait puis re-rendait la barre des dizaines de fois par seconde
+    // pendant tout le scroll. On regroupe les evenements dans une frame
+    // d'animation et on ne remonte l'etat qu'au franchissement du seuil.
+    let frame = 0;
+    let last = false;
+
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const next = window.scrollY > 20;
+        if (next !== last) {
+          last = next;
+          setScrolled(next);
+        }
+      });
+    };
+
+    // Un premier passage couvre le cas d'une page deja defilee au montage
+    // (retour arriere, arrivee sur une ancre) sans appeler setState
+    // directement dans le corps de l'effet.
+    onScroll();
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(() => {
@@ -56,12 +81,9 @@ export const Navbar = () => {
   return (
     <>
       <div className={`fixed top-0 left-0 right-0 z-50 flex justify-center px-4 sm:px-8 pointer-events-none transition-all duration-500 ${scrolled ? "pt-4" : "pt-2"}`}>
-        <motion.header
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className={`pointer-events-auto flex items-center justify-between w-full max-w-[1240px] px-4 sm:px-6 rounded-full transition-all duration-500 ${scrolled
-            ? "bg-[#060D03]/60 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)] py-1.5"
+        <header
+          className={`meb-navbar-in pointer-events-auto flex items-center justify-between w-full max-w-[1240px] px-4 sm:px-6 rounded-full transition-all duration-500 ${scrolled
+            ? "bg-[#060D03]/95 md:bg-[#060D03]/60 md:backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)] py-1.5"
             : "bg-transparent border border-transparent py-2"
             }`}
         >
@@ -155,22 +177,16 @@ export const Navbar = () => {
               <ListIcon size={20} weight="bold" />
             </button>
           )}
-        </motion.header>
+        </header>
       </div>
 
       {/* Mobile overlay */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-[#060D03] lg:hidden"
-          >
+      {open && (
+          <div className="meb-menu-in fixed inset-0 z-[60] bg-[#060D03] lg:hidden">
             <div className="relative flex flex-col h-full px-6 py-6 overflow-y-auto overflow-x-hidden">
               {/* Accents */}
-              <div className="absolute top-1/4 -right-40 w-96 h-96 bg-meb-green/10 rounded-full blur-[100px] pointer-events-none" />
-              <div className="absolute bottom-0 -left-20 w-80 h-80 bg-meb-green/5 rounded-full blur-[80px] pointer-events-none" />
+              <div className="meb-glow absolute top-1/4 -right-40 w-96 h-96 rounded-full pointer-events-none" style={{ "--glow": "#00B140", "--glow-opacity": 0.1 } as React.CSSProperties} />
+              <div className="meb-glow absolute bottom-0 -left-20 w-80 h-80 rounded-full pointer-events-none" style={{ "--glow": "#00B140", "--glow-opacity": 0.05 } as React.CSSProperties} />
 
               <div className="flex items-center justify-between mb-6 relative z-10">
                 <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2">
@@ -190,13 +206,8 @@ export const Navbar = () => {
                 </button>
               </div>
               <nav className="flex flex-col gap-2 flex-1 relative z-10">
-                {activeLinks.map((l, i) => (
-                  <motion.div
-                    key={l.href}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0, ease: "easeOut" }}
-                  >
+                {activeLinks.map((l) => (
+                  <div key={l.href}>
                     <Link
                       href={l.href}
                       onClick={() => setOpen(false)}
@@ -208,7 +219,7 @@ export const Navbar = () => {
                       </span>
                       <ArrowRightIcon size={24} className="relative z-10 text-white/20 group-hover:text-meb-green group-hover:-rotate-45 transition-all duration-300" />
                     </Link>
-                  </motion.div>
+                  </div>
                 ))}
               </nav>
               <div className="mt-auto pt-6 flex flex-col gap-4 relative z-10">
@@ -231,9 +242,8 @@ export const Navbar = () => {
                 </Link>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      )}
     </>
   );
 };

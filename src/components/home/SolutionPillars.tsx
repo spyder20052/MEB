@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Image from "next/image";
 
 export const SolutionPillars = () => {
@@ -9,12 +8,8 @@ export const SolutionPillars = () => {
       <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
 
         {/* Title */}
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-12 md:mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6"
-        >
+        <div
+          className="mb-12 md:mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>
             <span className="font-heading text-sm font-bold tracking-widest uppercase text-meb-green mb-4 block">
               Nos Solutions
@@ -24,15 +19,11 @@ export const SolutionPillars = () => {
               <span className="font-light text-meb-gray-500">votre futur.</span>
             </h2>
           </div>
-        </motion.div>
+        </div>
 
         {/* Grid layout matching Ampdrive Bento details */}
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
-        >
+        <div
+          className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
 
           {/* Card 1: Large White Card */}
           <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-white rounded-2xl p-8 lg:p-12 flex flex-col justify-center relative overflow-hidden group cursor-pointer border border-transparent hover:border-meb-gray-300 transition-colors duration-500">
@@ -93,7 +84,7 @@ export const SolutionPillars = () => {
             </div>
           </div>
 
-        </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import type { CSSProperties } from "react";
+
 import { ArrowUpRight } from "@phosphor-icons/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,45 +15,30 @@ export const ServicesPreview = () => {
             {/* Section Header */}
             <div className="mb-12 md:mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
                <div className="max-w-2xl">
-                  <motion.span
-                     initial={false}
-                     animate={{ opacity: 1, y: 0 }}
-                     className="font-heading text-sm font-bold tracking-widest uppercase text-meb-green mb-4 block"
-                  >
+                  <span
+                     className="font-heading text-sm font-bold tracking-widest uppercase text-meb-green mb-4 block">
                      Notre Expertise
-                  </motion.span>
-                  <motion.h2
-                     initial={false}
-                     animate={{ opacity: 1, y: 0 }}
-                     transition={{ delay: 0.1 }}
-                     className="font-heading text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-meb-dark font-bold"
-                  >
+                  </span>
+                  <h2
+                     className="font-heading text-[40px] md:text-[56px] lg:text-[72px] leading-[1.05] tracking-tight text-meb-dark font-bold">
                      Nos Services
                      <br /> <span className="font-light text-meb-gray-500">Fondamentaux.</span>
-                  </motion.h2>
+                  </h2>
                </div>
-               <motion.div
-                  initial={false}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="md:pb-4"
-               >
+               <div
+                  className="md:pb-4">
                   <p className="font-body text-sm md:text-lg text-meb-gray-500 max-w-sm border-l-2 border-meb-gray-300 pl-4 md:pl-6 leading-relaxed">
                      Des solutions conçues sur mesure pour vous accompagner et exécuter à chaque étape de votre croissance.
                   </p>
-               </motion.div>
+               </div>
             </div>
 
             {/* Dynamic Bento Grid - 2 Rows, 3 Columns */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
 
                {/* Card 1: Positionnement Stratégique (Dark / Wide / Col Span 2) */}
-               <motion.div
-                  initial={false}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="md:col-span-2 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-[#080E05] border border-meb-dark-border transition-colors duration-500 hover:border-meb-green min-h-[350px] md:min-h-[420px] p-8 md:p-12 flex flex-col justify-end"
-               >
+               <div
+                  className="md:col-span-2 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-[#080E05] border border-meb-dark-border transition-colors duration-500 hover:border-meb-green min-h-[350px] md:min-h-[420px] p-8 md:p-12 flex flex-col justify-end">
                   {/* Background Image full width */}
                   <Image
                      src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=1200"
@@ -66,7 +52,7 @@ export const ServicesPreview = () => {
                   <div className="absolute inset-0 bg-gradient-to-tr from-meb-dark/95 via-meb-dark/70 to-transparent group-hover:opacity-80 transition-opacity duration-500 pointer-events-none" />
 
                   {/* Glowing Corner */}
-                  <div className="absolute -top-20 -right-20 w-[300px] h-[300px] bg-meb-green/10 rounded-full blur-[60px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <div className="meb-glow absolute -top-20 -right-20 w-[300px] h-[300px] rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" style={{ "--glow": "#00B140", "--glow-opacity": 0.1 } as CSSProperties} />
 
                   <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                      <div className="max-w-md">
@@ -83,15 +69,11 @@ export const ServicesPreview = () => {
                         </p>
                      </div>
                   </div>
-               </motion.div>
+               </div>
 
                {/* Card 2: Orientation & Conseil (Green / Tall / Col Span 1) */}
-               <motion.div
-                  initial={false}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.15 }}
-                  className="md:col-span-1 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-meb-green min-h-[350px] md:min-h-[420px] p-8 md:p-10 flex flex-col"
-               >
+               <div
+                  className="md:col-span-1 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-meb-green min-h-[350px] md:min-h-[420px] p-8 md:p-10 flex flex-col">
                   {/* Tech lines decoration */}
                   <div className="absolute top-8 right-8 w-12 h-[1px] bg-meb-dark opacity-30 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                   <div className="absolute top-8 right-8 w-[1px] h-12 bg-meb-dark opacity-30 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -114,16 +96,12 @@ export const ServicesPreview = () => {
                         </p>
                      </div>
                   </div>
-               </motion.div>
+               </div>
 
                {/* Card 3: CTA Compact (White / Col Span 1) */}
-               <motion.div
-                  initial={false}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 }}
-                  className="md:col-span-1 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-white border border-meb-gray-200 hover:bg-meb-gray-50 transition-colors duration-500 min-h-[300px] md:min-h-[420px] p-8 md:p-10 flex flex-col justify-between"
-               >
-                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-meb-green/10 rounded-full blur-[40px] group-hover:bg-meb-green/20 transition-all duration-500 pointer-events-none" />
+               <div
+                  className="md:col-span-1 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-white border border-meb-gray-200 hover:bg-meb-gray-50 transition-colors duration-500 min-h-[300px] md:min-h-[420px] p-8 md:p-10 flex flex-col justify-between">
+                  <div className="meb-glow absolute -top-10 -right-10 w-40 h-40 rounded-full group-hover:bg-meb-green/20 transition-all duration-500 pointer-events-none" style={{ "--glow": "#00B140", "--glow-opacity": 0.1 } as CSSProperties} />
 
                   <span className="font-heading text-xs font-bold tracking-widest uppercase text-meb-gray-500 group-hover:text-meb-dark transition-colors duration-500">
                      Vers l&apos;excellence
@@ -137,15 +115,11 @@ export const ServicesPreview = () => {
                         Explorer
                      </Link>
                   </div>
-               </motion.div>
+               </div>
 
                {/* Card 4: Assistance RDV (Dark Photo / Wide / Col Span 2) */}
-               <motion.div
-                  initial={false}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 }}
-                  className="md:col-span-2 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-meb-dark border border-meb-dark-border transition-colors duration-500 hover:border-white/20 min-h-[350px] md:min-h-[420px] p-8 md:p-12 flex flex-col justify-end"
-               >
+               <div
+                  className="md:col-span-2 group cursor-pointer relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-meb-dark border border-meb-dark-border transition-colors duration-500 hover:border-white/20 min-h-[350px] md:min-h-[420px] p-8 md:p-12 flex flex-col justify-end">
                   {/* Background Image right aligned */}
                   <Image
                      src="/images/journey/image-col.jpg"
@@ -176,7 +150,7 @@ export const ServicesPreview = () => {
                      </div>
                   </div>
 
-               </motion.div>
+               </div>
             </div>
          </div>
       </section>
