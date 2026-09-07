@@ -64,6 +64,14 @@ export async function POST(req: NextRequest) {
           { status: 409 }
         );
       }
+      // Edition terminee (date passee ou recap publie) : la RPC refuse
+      // l'inscription, le formulaire ne doit meme plus etre propose.
+      if (result?.code === "termine") {
+        return NextResponse.json(
+          { error: "Cet événement est passé. Les inscriptions sont closes." },
+          { status: 409 }
+        );
+      }
       return NextResponse.json(
         { error: "Cet événement n'est plus disponible." },
         { status: 404 }

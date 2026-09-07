@@ -144,6 +144,30 @@ export default function EvenementsPage() {
   };
 
   /**
+   * Couleur d'accent de chaque gabarit de carte, pour que la fenetre
+   * d'inscription reprenne l'identite de la carte cliquee au lieu du vert
+   * MEB par defaut. `accent` sert aux aplats, `soft` aux fonds discrets.
+   */
+  const templateAccents: Record<
+    string,
+    { accent: string; soft: string; onAccent: string; ink: string }
+  > = {
+    // `accent` : aplats (bouton, pastille) — `onAccent` : ce qui se pose dessus.
+    // `ink` : la meme teinte assombrie, pour le TEXTE sur fond clair. Les
+    // couleurs de marque telles quelles descendent a 1,6:1 (jaune) et 2,9:1
+    // (vert) sur blanc, donc sous le minimum lisible ; ces variantes gardent
+    // l'identite de la carte en restant au-dessus de 4,5:1.
+    "01": { accent: "#E63946", soft: "#FDECEE", onAccent: "#FFFFFF", ink: "#C1121F" }, // rouge
+    "02": { accent: "#00B140", soft: "#E8F5EE", onAccent: "#FFFFFF", ink: "#00713A" }, // carte blanche, accent vert
+    "03": { accent: "#00B140", soft: "#E8F5EE", onAccent: "#FFFFFF", ink: "#00713A" }, // vert
+    "04": { accent: "#F5C518", soft: "#FEF7DC", onAccent: "#060D03", ink: "#8A6D00" }, // jaune
+    "05": { accent: "#0D1B2A", soft: "#E9EDF2", onAccent: "#FFFFFF", ink: "#0D1B2A" }, // navy
+  };
+
+  const accentOf = (e: EventItem) =>
+    templateAccents[e.templateStyle || "01"] ?? templateAccents["01"];
+
+  /**
    * Un evenement n'est plus "a venir" des lors que son recapitulatif est
    * publie OU que sa date est passee. Sans cette regle, une edition de
    * juin restait affichee comme prochaine en septembre.
@@ -683,9 +707,61 @@ export default function EvenementsPage() {
                 <X size={20} weight="bold" />
               </button>
 
-              {!submitSuccess ? (
+              {isPastEvent(selectedEvent) ? (
+                /* Edition terminee : on affiche l'information au lieu du
+                   formulaire. La RPC refuse de toute facon l'inscription,
+                   mais proposer les champs laissait croire que la place
+                   pouvait encore etre reservee. */
+                <div className="py-6 flex flex-col items-center text-center">
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
+                    style={{
+                      backgroundColor: accentOf(selectedEvent).soft,
+                      color: accentOf(selectedEvent).ink,
+                    }}
+                  >
+                    <Calendar size={32} weight="bold" />
+                  </div>
+                  <span
+                    className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase mb-2 block"
+                    style={{ color: accentOf(selectedEvent).ink }}
+                  >
+                    Événement passé
+                  </span>
+                  <h3 className="font-heading font-black text-xl uppercase leading-tight tracking-tight mb-3">
+                    {selectedEvent.title}
+                  </h3>
+                  <p className="font-body text-sm text-[#060D03]/70 leading-relaxed mb-6">
+                    Cette édition a eu lieu le{" "}
+                    <span className="font-bold text-[#060D03]">{selectedEvent.dateStr}</span>.
+                    Les inscriptions sont closes.
+                  </p>
+                  <div
+                    className="w-full p-4 rounded-xl mb-6 text-xs text-[#060D03]/70 font-body"
+                    style={{
+                      backgroundColor: accentOf(selectedEvent).soft,
+                      border: `1px solid ${accentOf(selectedEvent).ink}33`,
+                    }}
+                  >
+                    Écris-nous sur WhatsApp pour être prévenu de la prochaine édition.
+                  </div>
+                  <button
+                    onClick={closeModal}
+                    className="w-full font-heading font-bold py-4 rounded-xl transition-opacity duration-300 hover:opacity-90 uppercase tracking-widest text-xs"
+                    style={{
+                      backgroundColor: accentOf(selectedEvent).accent,
+                      color: accentOf(selectedEvent).onAccent,
+                    }}
+                  >
+                    Fermer la fenêtre
+                  </button>
+                </div>
+              ) : !submitSuccess ? (
                 <>
-                  <span className="font-mono text-[10px] font-bold tracking-[0.2em] text-[#00B140] uppercase mb-1 block">
+                  <span
+                    className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase mb-1 block"
+                    style={{ color: accentOf(selectedEvent).ink }}
+                  >
                     Inscription
                   </span>
                   <h3 className="font-heading font-black text-xl uppercase leading-tight tracking-tight mb-4 pr-6">
@@ -695,11 +771,11 @@ export default function EvenementsPage() {
                   <div className="mb-6 bg-[#F5F5F5] p-4 rounded-xl border border-[#060D03]/5">
                     <div className="text-xs font-mono text-[#060D03]/70 flex flex-col gap-1.5">
                       <div className="flex items-center gap-2">
-                        <Calendar size={14} weight="bold" className="text-[#00B140]" />
+                        <Calendar size={14} weight="bold" style={{ color: accentOf(selectedEvent).ink }} />
                         <span>{selectedEvent.dateStr} ({selectedEvent.time})</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MapPin size={14} weight="bold" className="text-[#00B140]" />
+                        <MapPin size={14} weight="bold" style={{ color: accentOf(selectedEvent).ink }} />
                         <span>{selectedEvent.venue}</span>
                       </div>
                     </div>
@@ -782,10 +858,17 @@ export default function EvenementsPage() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-[#00B140] hover:bg-[#00D94F] text-white font-heading font-bold py-4 rounded-xl transition-all duration-300 uppercase tracking-widest text-xs mt-4 flex items-center justify-center gap-2"
+                      className="w-full font-heading font-bold py-4 rounded-xl transition-opacity duration-300 hover:opacity-90 disabled:opacity-70 uppercase tracking-widest text-xs mt-4 flex items-center justify-center gap-2"
+                      style={{
+                        backgroundColor: accentOf(selectedEvent).accent,
+                        color: accentOf(selectedEvent).onAccent,
+                      }}
                     >
                       {isSubmitting ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <div
+                          className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+                          style={{ borderColor: accentOf(selectedEvent).onAccent, borderTopColor: "transparent" }}
+                        ></div>
                       ) : (
                         "Confirmer l'inscription"
                       )}
@@ -798,7 +881,13 @@ export default function EvenementsPage() {
                 </>
               ) : (
                 <div className="py-6 flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-[#E8F5EE] text-[#00B140] rounded-full flex items-center justify-center mb-6">
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
+                    style={{
+                      backgroundColor: accentOf(selectedEvent).soft,
+                      color: accentOf(selectedEvent).ink,
+                    }}
+                  >
                     <Check size={32} weight="bold" />
                   </div>
                   <h3 className="font-heading font-black text-2xl uppercase leading-tight tracking-tight mb-2">
