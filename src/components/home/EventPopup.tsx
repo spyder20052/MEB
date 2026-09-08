@@ -27,8 +27,11 @@ export function EventPopup() {
 
     // Import differe : le popup s'affiche apres un delai, inutile de
     // charger le client Supabase dans le bundle initial de l'accueil.
-    import("@/utils/storage").then(({ getEvents }) => getEvents()).then((storedEvents) => {
-      if (cancelled) return;
+    import("@/utils/storage")
+      .then(({ getEvents }) => getEvents())
+      .catch(() => null)
+      .then((storedEvents) => {
+      if (cancelled || !storedEvents) return;
 
       // Determine closest upcoming event
       const now = new Date();

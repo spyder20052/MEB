@@ -1,0 +1,965 @@
+"use client";
+
+import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
+import Image from "next/image";
+import { EventPhoto } from "@/components/ui/EventPhoto";
+import { ArrowUpRight, ArrowDownLeft, X, Check, Calendar, MapPin, Camera, CaretDown } from "@phosphor-icons/react";
+import { fetchEventsRest, toEventViews, type EventView } from "@/lib/events";
+import { PageHiddenFallback } from "@/components/layout/PageHiddenFallback";
+import { usePageHidden } from "@/hooks/usePageHidden";
+
+type EvenementsClientProps = {
+  /** Événements lus en base par le serveur (page.tsx) : c'est l'état initial, jamais un contenu de secours. */
+  initialEvents: EventView[];
+  /** Vrai si la base n'a pas répondu au serveur : on le dit au lieu d'afficher « aucun événement ». */
+  loadFailed: boolean;
+  /** Masquage de la page, lu en base par le serveur. */
+  initialHidden: boolean;
+};
+
+// Partie interactive de /evenements. Le HTML arrive déjà rempli par le rendu
+// serveur ; ici on ne gère que les interactions et les mises à jour en direct.
+export function EvenementsClient({ initialEvents, loadFailed, initialHidden }: EvenementsClientProps) {
+  const isPageHidden = usePageHidden("/evenements", initialHidden);
+  const [eventList, setEventList] = useState<EventView[]>(initialEvents);
+  const [loadError, setLoadError] = useState(loadFailed);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventView | null>(null);
+  const [formData, setFormData] = useState({ name: "", whatsapp: "", email: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  // Recap deplie sous la carte de l'evenement (null = aucun)
+  const [openRecap, setOpenRecap] = useState<string | null>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+
+  // Recharge la liste dès qu'un événement est modifié depuis le dashboard
+  // ("meb_settings_updated" est relayé par Supabase Realtime pour tous les
+  // visiteurs) ou après une inscription. Même lecture REST que le serveur.
+  const refresh = useCallback(() => {
+    fetchEventsRest()
+      .then((events) => {
+        setEventList(toEventViews(events));
+        setLoadError(false);
+      })
+      .catch(() => {
+        // Réseau indisponible : on garde l'affichage courant.
+      });
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("meb_settings_updated", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("meb_settings_updated", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, [refresh]);
+
+  const e1 = eventList.find(e => e.num === "01");
+  const e2 = eventList.find(e => e.num === "02");
+  const e3 = eventList.find(e => e.num === "03");
+  const e4 = eventList.find(e => e.num === "04");
+
+  /**
+   * Enveloppe une carte d'evenement : si l'edition est passee et que son
+   * recapitulatif est publie, un bouton "Voir le recap" apparait sous la
+   * carte et deplie le contenu sur place, sans section separee en bas de page.
+   */
+  const renderEventCard = (event: EventView) => {
+    const hasRecap = event.recapPublished && !event.isHidden;
+    if (!hasRecap) return renderEventCardInner(event);
+
+    const isOpen = openRecap === event.num;
+    const photos = event.recapPhotos || [];
+
+    return (
+      <div key={`wrap-${event.num}`} className="flex flex-col">
+        {renderEventCardInner(event)}
+
+        <button
+          type="button"
+          onClick={() => setOpenRecap(isOpen ? null : event.num)}
+          aria-expanded={isOpen}
+          className="mt-3 w-full flex items-center justify-between gap-3 rounded-full border border-[#00B140]/35 bg-[#E8F5EE] px-5 py-3 font-mono text-[10px] font-bold uppercase tracking-widest text-[#00713A] transition-colors hover:bg-[#00B140] hover:text-white"
+        >
+          <span className="flex items-center gap-2">
+            <Camera size={14} weight="bold" />
+            {isOpen ? "Masquer le récap" : "Voir le récap"}
+          </span>
+          <span className="flex items-center gap-2 opacity-80">
+            {event.recapDateStr}
+            <CaretDown
+              size={14}
+              weight="bold"
+              className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+            />
+          </span>
+        </button>
+
+        <AnimatePresence initial={false}>
+          {isOpen && (
+            <motion.div
+              key={`recap-panel-${event.num}`}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="overflow-hidden"
+            >
+              <div className="mt-3 rounded-[1.5rem] border border-[#060D03]/10 bg-white p-6 text-[#060D03]">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[10px] uppercase tracking-wider text-[#060D03]/55 mb-4">
+                  {event.recapDateStr && (
+                    <span className="flex items-center gap-1.5">
+                      <Calendar size={13} weight="bold" className="text-[#00B140]" />
+                      {event.recapDateStr}
+                    </span>
+                  )}
+                  {event.venue && (
+                    <span className="flex items-center gap-1.5">
+                      <MapPin size={13} weight="bold" className="text-[#00B140]" />
+                      {event.venue}
+                    </span>
+                  )}
+                  {typeof event.recapAttendees === "number" && event.recapAttendees > 0 && (
+                    <span className="flex items-center gap-1.5 font-bold text-[#00B140]">
+                      {event.recapAttendees} participants
+                    </span>
+                  )}
+                </div>
+
+                {event.recapText && (
+                  <p className="font-body text-sm text-[#555555] leading-relaxed whitespace-pre-line mb-5">
+                    {event.recapText}
+                  </p>
+                )}
+
+                {photos.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {photos.map((src, i) => (
+                      <div
+                        key={i}
+                        className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#F5F5F5] border border-[#060D03]/8"
+                      >
+                        <Image
+                          src={src}
+                          alt={`${event.title}, photo ${i + 1} de l'édition ${event.recapDateStr || "passée"}`}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 300px"
+                          className="object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
+  /**
+   * Couleur d'accent de chaque gabarit de carte, pour que la fenetre
+   * d'inscription reprenne l'identite de la carte cliquee au lieu du vert
+   * MEB par defaut. `accent` sert aux aplats, `soft` aux fonds discrets.
+   */
+  const templateAccents: Record<
+    string,
+    { accent: string; soft: string; onAccent: string; ink: string }
+  > = {
+    // `accent` : aplats (bouton, pastille) — `onAccent` : ce qui se pose dessus.
+    // `ink` : la meme teinte assombrie, pour le TEXTE sur fond clair. Les
+    // couleurs de marque telles quelles descendent a 1,6:1 (jaune) et 2,9:1
+    // (vert) sur blanc, donc sous le minimum lisible ; ces variantes gardent
+    // l'identite de la carte en restant au-dessus de 4,5:1.
+    "01": { accent: "#E63946", soft: "#FDECEE", onAccent: "#FFFFFF", ink: "#C1121F" }, // rouge
+    "02": { accent: "#00B140", soft: "#E8F5EE", onAccent: "#FFFFFF", ink: "#00713A" }, // carte blanche, accent vert
+    "03": { accent: "#00B140", soft: "#E8F5EE", onAccent: "#FFFFFF", ink: "#00713A" }, // vert
+    "04": { accent: "#F5C518", soft: "#FEF7DC", onAccent: "#060D03", ink: "#8A6D00" }, // jaune
+    "05": { accent: "#0D1B2A", soft: "#E9EDF2", onAccent: "#FFFFFF", ink: "#0D1B2A" }, // navy
+  };
+
+  const accentOf = (e: EventView) =>
+    templateAccents[e.templateStyle || "01"] ?? templateAccents["01"];
+
+  // Le statut « édition passée » est calculé par lib/events (même règle que
+  // la base) et livré avec chaque événement : le HTML rendu par le serveur et
+  // l'hydratation s'accordent sans recalcul.
+  const isPastEvent = (e: EventView) => e.isPast;
+
+  const isUpcoming = (e: EventView | undefined) =>
+    !!e && !e.isHidden && !isPastEvent(e);
+
+  const otherEvents = eventList.filter(
+    e => !["01", "02", "03", "04"].includes(e.num) && !e.isHidden && !isPastEvent(e)
+  );
+
+  // Editions passees : affichees a part, avec leur bouton recap.
+  const pastEvents = eventList.filter(e => !e.isHidden && isPastEvent(e));
+
+  // Les quatre formats récurrents occupent la grille « bento » tant qu'au
+  // moins un est à venir. Sinon, les autres événements à venir prennent la
+  // section Agenda eux-mêmes : pas de grille creuse, pas de section (03) vide.
+  const featuredUpcoming = [e1, e2, e3, e4].some(isUpcoming);
+  const hasUpcoming = featuredUpcoming || otherEvents.length > 0;
+  const showOtherSection = featuredUpcoming && otherEvents.length > 0;
+
+  const renderEventCardInner = (event: EventView) => {
+    const style = event.templateStyle || "01";
+
+    // Template 05 : la photo occupe toute la carte, le texte se pose par-dessus.
+    // Sans photo, on retombe sur un fond Navy pour que la carte reste lisible.
+    if (style === "05") {
+      const photo = event.cardPhoto || (event.recapPhotos || [])[0];
+      return (
+        <motion.div
+          key={event.num}
+          onClick={() => openModal(event)}
+          whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(0, 0, 0, 0.3)" }}
+          whileTap={{ scale: 0.95, y: -2 }}
+          className="group border border-transparent bg-[#0D1B2A] rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[220px] cursor-pointer relative overflow-hidden text-white"
+        >
+          {photo && (
+            <div className="absolute inset-0 z-0">
+              <EventPhoto
+                src={photo}
+                alt=""
+                decorative
+                fallback="none"
+                sizes="(max-width: 768px) 100vw, 400px"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              {/* Voile sombre : garantit le contraste AA du texte blanc sur n'importe quelle photo. */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/35" />
+            </div>
+          )}
+
+          <div className="relative z-10 flex justify-between items-start mb-6">
+            <span className="font-mono text-sm text-white font-bold">#</span>
+            <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-white border border-white/30 px-2.5 py-0.5 rounded-full bg-black/40 backdrop-blur-sm">
+              {event.tag}
+            </span>
+          </div>
+          <div className="relative z-10">
+            <h3 className="font-heading font-bold text-lg uppercase leading-tight text-white mb-2 line-clamp-2">
+              {event.title}
+            </h3>
+            <p className="font-body text-xs text-white/90 leading-relaxed mb-4 line-clamp-3">
+              {event.desc}
+            </p>
+            <div className="border-t border-white/25 pt-3 flex items-center justify-between font-mono text-[9px] text-white/80">
+              <span>{event.dateStr}</span>
+              <span className="text-white font-bold">{event.seats} PLACES RESTANTES</span>
+            </div>
+          </div>
+        </motion.div>
+      );
+    }
+    
+    if (style === "01") {
+      return (
+        <motion.div
+          key={event.num}
+          onClick={() => openModal(event)}
+          whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(230, 57, 70, 0.25)" }}
+          whileTap={{ scale: 0.95, y: -2 }}
+          className="group border border-transparent bg-[#E63946] hover:bg-[#E63946]/95 rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[220px] cursor-pointer transition-colors duration-300 relative overflow-hidden text-white"
+        >
+          <div className="relative z-10 flex justify-between items-start mb-6">
+            <span className="font-mono text-sm text-white font-bold">#</span>
+            <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-white/95 border border-white/20 px-2.5 py-0.5 rounded-full bg-white/10">
+              {event.tag}
+            </span>
+          </div>
+          <div className="relative z-10">
+            <h3 className="font-heading font-bold text-lg uppercase leading-tight text-white mb-2 line-clamp-2">
+              {event.title}
+            </h3>
+            <p className="font-body text-xs text-white/90 leading-relaxed mb-4 line-clamp-3">
+              {event.desc}
+            </p>
+            <div className="border-t border-white/25 pt-3 flex items-center justify-between font-mono text-[9px] text-white/70">
+              <span>{event.dateStr}</span>
+              <span className="text-white font-bold">{event.seats} PLACES RESTANTES</span>
+            </div>
+          </div>
+        </motion.div>
+      );
+    }
+    
+    if (style === "02") {
+      return (
+        <motion.div
+          key={event.num}
+          onClick={() => openModal(event)}
+          whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(255, 255, 255, 0.08)" }}
+          whileTap={{ scale: 0.95, y: -2 }}
+          className="relative group cursor-pointer rounded-[1.5rem] flex min-h-[220px]"
+        >
+          <div 
+            className="bg-white text-[#060D03] p-6 rounded-l-[1.5rem] rounded-br-[1.5rem] flex-1 flex flex-col justify-between"
+            style={{ clipPath: "polygon(0 0, 75% 0, 100% 25%, 100% 100%, 0 100%)" }}
+          >
+            <div>
+              <div className="flex justify-between items-start mb-6 pr-6">
+                <span className="font-mono text-sm text-[#00B140] font-bold">#</span>
+                <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-[#060D03]/50 bg-[#060D03]/5 px-2.5 py-0.5 rounded-full">
+                  {event.tag}
+                </span>
+              </div>
+              <div>
+                <h3 className="font-heading font-bold text-lg uppercase leading-tight text-[#060D03] mb-2 line-clamp-2">
+                  {event.title}
+                </h3>
+                <p className="font-body text-xs text-[#060D03]/70 leading-relaxed mb-4 line-clamp-3">
+                  {event.desc}
+                </p>
+              </div>
+            </div>
+            
+            <div className="border-t border-[#060D03]/10 pt-3 flex items-center justify-between font-mono text-[9px] text-[#060D03]/60">
+              <span>{event.dateStr}</span>
+              <span className="text-[#00B140] font-bold">{event.seats} PLACES RESTANTES</span>
+            </div>
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              openModal(event);
+            }}
+            className="absolute top-[-28px] right-[-12px] w-14 h-14 rounded-full border border-white bg-[#060D03] hover:bg-[#00B140] hover:text-white text-white flex items-center justify-center transition-all duration-300 group z-30 shadow-lg"
+          >
+            <ArrowDownLeft size={20} className="group-hover:scale-110 transition-transform" />
+          </motion.button>
+        </motion.div>
+      );
+    }
+    
+    if (style === "03") {
+      return (
+        <motion.div
+          key={event.num}
+          onClick={() => openModal(event)}
+          whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(0, 177, 64, 0.25)" }}
+          whileTap={{ scale: 0.95, y: -2 }}
+          className="group border border-transparent bg-[#00B140] hover:bg-[#00D94F] rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[220px] cursor-pointer transition-colors duration-300 relative overflow-hidden text-white"
+        >
+          <div className="relative z-10 flex justify-between items-start mb-6">
+            <span className="font-mono text-sm text-white font-bold">#</span>
+            <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-white/95 border border-white/20 px-2.5 py-0.5 rounded-full bg-white/10">
+              {event.tag}
+            </span>
+          </div>
+          <div className="relative z-10">
+            <h3 className="font-heading font-bold text-lg uppercase leading-tight text-white mb-2 line-clamp-2">
+              {event.title}
+            </h3>
+            <p className="font-body text-xs text-white/90 leading-relaxed mb-4 line-clamp-3">
+              {event.desc}
+            </p>
+            <div className="border-t border-white/25 pt-3 flex items-center justify-between font-mono text-[9px] text-white/70">
+              <span>{event.dateStr}</span>
+              <span className="text-white font-bold">{event.seats} PLACES RESTANTES</span>
+            </div>
+          </div>
+        </motion.div>
+      );
+    }
+    
+    if (style === "04") {
+      return (
+        <motion.div
+          key={event.num}
+          onClick={() => openModal(event)}
+          whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 30px rgba(245, 197, 24, 0.25)" }}
+          whileTap={{ scale: 0.95, y: -2 }}
+          className="group border border-transparent bg-[#F5C518] hover:bg-[#ffda3c] rounded-[1.5rem] p-6 flex flex-col justify-between min-h-[220px] cursor-pointer transition-colors duration-300 relative overflow-hidden text-[#060D03]"
+        >
+          <div className="relative z-10 flex justify-between items-start mb-6">
+            <span className="font-mono text-sm text-[#060D03] font-bold">#</span>
+            <span className="font-mono text-[9px] font-bold tracking-wider uppercase text-[#060D03]/75 border border-[#060D03]/15 px-2.5 py-0.5 rounded-full bg-black/5">
+              {event.tag}
+            </span>
+          </div>
+          <div className="relative z-10">
+            <h3 className="font-heading font-bold text-lg uppercase leading-tight text-[#060D03] mb-2 line-clamp-2">
+              {event.title}
+            </h3>
+            <p className="font-body text-xs text-[#060D03]/85 leading-relaxed mb-4 line-clamp-3">
+              {event.desc}
+            </p>
+            <div className="border-t border-[#060D03]/15 pt-3 flex items-center justify-between font-mono text-[9px] text-[#060D03]/70">
+              <span>{event.dateStr}</span>
+              <span className="text-[#060D03] font-bold">{event.seats} PLACES RESTANTES</span>
+            </div>
+          </div>
+        </motion.div>
+      );
+    }
+  };
+
+  // Idem /projets : l'apparition au scroll a ete retiree, le gsap.set()
+  // restant n'avait plus d'effet et faisait charger GSAP pour rien.
+
+  const openModal = (event: EventView) => {
+    setSelectedEvent(event);
+    setFormData({ name: "", whatsapp: "", email: "" });
+    setFormErrors({});
+    setSubmitSuccess(false);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvent(null);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      setFormErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+    if (!formData.name.trim()) errors.name = "Le nom complet est requis.";
+    if (!formData.whatsapp.trim()) errors.whatsapp = "Le numéro WhatsApp est requis.";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFormErrors({});
+    try {
+      const res = await fetch("/api/event-registration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventNum: selectedEvent?.num,
+          name: formData.name,
+          whatsapp: formData.whatsapp,
+          email: formData.email,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setFormErrors({ submit: json.error || "L'inscription a échoué. Réessaie dans un instant." });
+        return;
+      }
+
+      // Succès confirmé par le serveur : la place est réservée et enregistrée.
+      setSubmitSuccess(true);
+      // Recharge les événements pour refléter le décompte des places.
+      refresh();
+    } catch {
+      setFormErrors({ submit: "Connexion impossible. Vérifie ton réseau puis réessaie." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isPageHidden) {
+    return <PageHiddenFallback pageName="Événements" />;
+  }
+
+  return (
+    <MotionConfig reducedMotion="user">
+    <div className="min-h-screen bg-white text-[#060D03] pt-44 pb-20">
+
+      {/* ── HERO BRUTALIST (MIMICKING THE HALLOWEEN PARTY DESIGN) ───────────────────────── */}
+      <section className="max-w-[1240px] mx-auto px-5 sm:px-8 pb-10">
+        <div className="relative w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Main Huge Typography Header */}
+          <div className="lg:col-span-8 flex flex-col justify-between h-full">
+            <div className="relative">
+              <motion.h1 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="font-heading font-light text-[11vw] sm:text-[9vw] lg:text-[7vw] leading-[0.95] tracking-tighter text-[#060D03] uppercase relative"
+              >
+                AGENDA <br />
+                <span className="font-extrabold">MEB</span>
+                <span className="font-mono text-xl sm:text-2xl lg:text-3xl font-light align-super ml-2 text-[#00B140]">
+                  (01)
+                </span>
+              </motion.h1>
+
+              {/* Overlapping Brutalist Circular Button */}
+              <motion.a 
+                href="/prendre-rdv"
+                initial={{ scale: 0, rotate: -45 }}
+                animate={{ scale: 1, rotate: 0 }}
+                whileHover={{ scale: 1.08, rotate: 5 }}
+                whileTap={{ scale: 0.92 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="absolute right-[5%] top-[60%] lg:right-[15%] lg:top-[50%] w-28 h-28 sm:w-36 sm:h-36 rounded-full border border-[#060D03] bg-white flex flex-col items-center justify-center cursor-pointer group hover:bg-[#060D03] hover:text-white transition-all duration-500 shadow-md"
+              >
+                <ArrowUpRight size={28} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                <span className="font-mono text-[9px] font-bold tracking-widest uppercase mt-2 text-center leading-tight">
+                  S&apos;inscrire <br />à l&apos;agenda
+                </span>
+              </motion.a>
+            </div>
+
+            {/* Left and Middle Columns below Header */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pt-16 mt-8 border-t border-[#060D03]/10">
+              
+              {/* Left Tags Column */}
+              <div className="md:col-span-4 flex flex-col gap-2.5">
+                <div className="border border-[#060D03] rounded-full px-5 py-2.5 inline-flex items-center justify-center font-mono text-[10px] font-bold uppercase tracking-widest text-[#060D03] hover:bg-[#060D03] hover:text-white transition-colors duration-300">
+                  Calendrier 2026
+                </div>
+                <div className="border border-[#060D03] rounded-full px-5 py-2.5 inline-flex items-center justify-center font-mono text-[10px] font-bold uppercase tracking-widest text-[#060D03] hover:bg-[#060D03] hover:text-white transition-colors duration-300">
+                  Ciné Concorde
+                </div>
+              </div>
+
+              {/* Middle Paragraph Column */}
+              <div className="md:col-span-8 pr-4">
+                <span className="font-mono text-[10px] font-bold tracking-widest text-[#060D03]/40 uppercase mb-3 block">
+                  L&apos;impact par le réseau
+                </span>
+                <h3 className="font-heading font-bold text-lg text-[#060D03] uppercase tracking-tight mb-3">
+                  ENTREPRENDRE EN COLLECTIF.
+                </h3>
+                <p className="font-body text-sm text-[#060D03]/70 leading-relaxed">
+                  Notre hub digital et physique réunit des sessions régulières conçues pour débloquer votre croissance. Choisissez votre format et réservez vos places via Luma pour rejoindre l&apos;écosystème.
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Right Column: Dynamic Duo of Images (col-span-4) */}
+          <div className="lg:col-span-4 flex items-end justify-end gap-4 w-full pt-10 lg:pt-0">
+            {/* Small Portrait Image */}
+            <motion.div 
+              initial={{ scale: 0, rotate: -45, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+              className="relative w-[110px] h-[150px] sm:w-[130px] sm:h-[180px] rounded-[1.5rem] overflow-hidden border border-[#060D03]/10 shrink-0 shadow-sm"
+            >
+              <Image 
+                src="/images/journey/image-co.jpg" 
+                alt="MEB workshop" 
+                fill sizes="(max-width: 768px) 100vw, 50vw" 
+                className="object-cover grayscale"
+              />
+            </motion.div>
+
+            {/* Large Portrait Image */}
+            <motion.div 
+              initial={{ opacity: 0, y: 45 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+              className="relative w-[200px] h-[280px] sm:w-[240px] sm:h-[320px] rounded-[2rem] overflow-hidden border border-[#060D03]/10 shrink-0 shadow-md"
+            >
+              <Image 
+                src="/images/entrepreneur-1.jpg" 
+                alt="MEB community" 
+                fill sizes="(max-width: 768px) 100vw, 50vw" 
+                className="object-cover grayscale"
+              />
+            </motion.div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── RUNNING TICKER MARQUEE ───────────────────────── */}
+      <div className="w-full border-y border-[#060D03] py-4 my-16 overflow-hidden bg-white relative z-20">
+        <div className="flex gap-16 animate-[marquee_35s_linear_infinite] whitespace-nowrap">
+          {Array.from({ length: 3 }).map((_, o) => (
+            <div key={o} className="flex gap-16 shrink-0">
+              {["JPO", "PETIT-DEJ", "AFTERWORK", "MASTERMIND", "CO-CREATION", "LUMA EVENTS"].map((text, i) => (
+                <span 
+                  key={i} 
+                  className="font-heading font-black text-xs tracking-[0.25em] uppercase text-[#060D03] flex items-center gap-4"
+                >
+                  {text} <span className="text-[#00B140]">•</span>
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── NEW DARK BRUTALIST EVENTS CALENDAR SECTION ───────────────────────── */}
+      <section className="bg-[#060D03] text-white py-24 border-t border-white/5 relative z-20">
+        <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
+          
+          {/* Section Header */}
+          <div ref={headerRef} className="mb-16 overflow-hidden">
+            <h2 className="font-heading font-light text-4xl sm:text-5xl lg:text-7xl uppercase tracking-tighter leading-[0.95] text-white">
+              <span className="block overflow-hidden mb-2">
+                <span className="reveal-line inline-block">
+                  <span className="font-mono text-xl sm:text-2xl lg:text-3xl align-super mr-4 text-[#00B140]">(02)</span>
+                  AGENDA DES
+                </span>
+              </span>
+              <span className="block overflow-hidden">
+                <span className="reveal-line inline-block font-extrabold">
+                  EVENEMENTS MEB
+                </span>
+              </span>
+            </h2>
+          </div>
+
+          {/* Aucune date ouverte, ou base injoignable : on le dit, sans grille vide. */}
+          {!hasUpcoming && (
+            <div className="max-w-2xl rounded-[1.5rem] border border-white/10 p-8 sm:p-12">
+              <span className="font-mono text-[10px] font-bold tracking-widest uppercase text-[#00B140] block mb-3">
+                {loadError ? "Agenda momentanément indisponible" : "Prochaines dates en préparation"}
+              </span>
+              <p className="font-body text-sm text-white/70 leading-relaxed mb-6">
+                {loadError
+                  ? "La liste des événements n'a pas pu être chargée. Recharge la page dans un instant."
+                  : "Aucun événement n'est ouvert aux inscriptions pour le moment. Écris-nous sur WhatsApp : on te prévient dès qu'une date est fixée."}
+              </p>
+              <a
+                href="https://wa.me/2290160007007?text=Bonjour%2C%20je%20souhaite%20%C3%AAtre%20pr%C3%A9venu%20du%20prochain%20%C3%A9v%C3%A9nement%20MEB."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-[#00B140] px-5 py-3 font-mono text-[10px] font-bold uppercase tracking-widest text-[#00B140] transition-colors hover:bg-[#00B140] hover:text-white"
+              >
+                Écrire sur WhatsApp
+                <ArrowUpRight size={14} weight="bold" />
+              </a>
+            </div>
+          )}
+
+          {/* Formats récurrents tous passés : les autres événements à venir forment l'agenda. */}
+          {!featuredUpcoming && otherEvents.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+              {otherEvents.map((event) => renderEventCard(event))}
+            </div>
+          )}
+
+          {/* Bento Grid */}
+          {featuredUpcoming && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 items-stretch">
+            
+            {/* COLUMN 1: Pill & Image */}
+            <div className="lg:col-span-3 flex flex-col gap-6 justify-between h-full">
+              <div>
+                <div className="border border-white/20 rounded-full px-5 py-2 inline-flex items-center justify-center font-mono text-[10px] font-bold uppercase tracking-widest text-white hover:border-[#00B140] hover:text-[#00B140] transition-all duration-300">
+                  AGENDA 2026
+                </div>
+              </div>
+              
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="relative w-full h-[250px] sm:h-[300px] lg:h-[220px] xl:h-[260px] rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg mt-8 lg:mt-0"
+              >
+                <Image 
+                  src="/images/journey/image-co.jpg" 
+                  alt="MEB Community Events" 
+                  fill sizes="(max-width: 768px) 100vw, 50vw" 
+                  className="object-cover grayscale hover:grayscale-0 hover:scale-105 transition-all duration-700"
+                />
+              </motion.div>
+            </div>
+
+            {/* COLUMN 2: Card 01 & Card 03 */}
+            <div className="lg:col-span-3 flex flex-col gap-6">
+              {/* Card 01 - JPO */}
+                            {isUpcoming(e1) && renderEventCard(e1!)}
+
+              {/* Card 03 - Mastermind */}
+                            {isUpcoming(e3) && renderEventCard(e3!)}
+            </div>
+
+            {/* COLUMN 3: Card 02 (White with diagonal cut) & Overlapping button */}
+            <div className="lg:col-span-3 flex flex-col gap-6 justify-between h-full relative">
+                            {isUpcoming(e2) && renderEventCard(e2!)}
+
+              {/* Spacing alignment for bento layout on desktop */}
+              <div className="hidden lg:block h-24"></div>
+            </div>
+
+            {/* COLUMN 4: Card 04 (Spans full height of others) */}
+            <div className="lg:col-span-3 flex h-full">
+                            {isUpcoming(e4) && renderEventCard(e4!)}
+            </div>
+
+          </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── AUTRES ÉVÉNEMENTS À VENIR ───────────────────────── */}
+      {showOtherSection && (
+        <section className="bg-[#060D03] text-white pb-24 relative z-20 border-t border-white/5 pt-12">
+          <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
+            <h3 className="font-heading font-light text-xl sm:text-2xl uppercase tracking-tight mb-12 text-white">
+              <span className="font-mono text-lg mr-3 text-[#00B140]">(03)</span>
+              AUTRES ÉVÉNEMENTS À VENIR
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+              {otherEvents.map((event) => renderEventCard(event))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── ÉDITIONS PASSÉES ───────────────────────── */}
+      {pastEvents.length > 0 && (
+        <section className="bg-[#060D03] text-white pb-24 relative z-20 border-t border-white/5 pt-12">
+          <div className="max-w-[1240px] mx-auto px-5 sm:px-8">
+            <h3 className="font-heading font-light text-xl sm:text-2xl uppercase tracking-tight mb-3 text-white">
+              <span className="font-mono text-lg mr-3 text-[#00B140]">({showOtherSection ? "04" : "03"})</span>
+              ÉDITIONS PASSÉES
+            </h3>
+            <p className="font-body text-sm text-white/50 mb-12 max-w-xl">
+              Retour sur nos dernières éditions. Ouvre le récap pour voir ce qui t&apos;attend.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+              {pastEvents.map((event) => renderEventCard(event))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── REGISTRATION MODAL ───────────────────────── */}
+      <AnimatePresence>
+        {isModalOpen && selectedEvent && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <motion.div
+              initial={false}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white border-2 border-[#060D03] rounded-2xl max-w-md w-full p-8 relative text-[#060D03] shadow-2xl"
+            >
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 text-[#060D03]/60 hover:text-[#060D03] p-1 rounded-full hover:bg-black/5 transition-colors"
+                aria-label="Fermer"
+              >
+                <X size={20} weight="bold" />
+              </button>
+
+              {isPastEvent(selectedEvent) ? (
+                /* Edition terminee : on affiche l'information au lieu du
+                   formulaire. La RPC refuse de toute facon l'inscription,
+                   mais proposer les champs laissait croire que la place
+                   pouvait encore etre reservee. */
+                <div className="py-6 flex flex-col items-center text-center">
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
+                    style={{
+                      backgroundColor: accentOf(selectedEvent).soft,
+                      color: accentOf(selectedEvent).ink,
+                    }}
+                  >
+                    <Calendar size={32} weight="bold" />
+                  </div>
+                  <span
+                    className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase mb-2 block"
+                    style={{ color: accentOf(selectedEvent).ink }}
+                  >
+                    Événement passé
+                  </span>
+                  <h3 className="font-heading font-black text-xl uppercase leading-tight tracking-tight mb-3">
+                    {selectedEvent.title}
+                  </h3>
+                  <p className="font-body text-sm text-[#060D03]/70 leading-relaxed mb-6">
+                    Cette édition a eu lieu le{" "}
+                    <span className="font-bold text-[#060D03]">{selectedEvent.dateStr}</span>.
+                    Les inscriptions sont closes.
+                  </p>
+                  <div
+                    className="w-full p-4 rounded-xl mb-6 text-xs text-[#060D03]/70 font-body"
+                    style={{
+                      backgroundColor: accentOf(selectedEvent).soft,
+                      border: `1px solid ${accentOf(selectedEvent).ink}33`,
+                    }}
+                  >
+                    Écris-nous sur WhatsApp pour être prévenu de la prochaine édition.
+                  </div>
+                  <button
+                    onClick={closeModal}
+                    className="w-full font-heading font-bold py-4 rounded-xl transition-opacity duration-300 hover:opacity-90 uppercase tracking-widest text-xs"
+                    style={{
+                      backgroundColor: accentOf(selectedEvent).accent,
+                      color: accentOf(selectedEvent).onAccent,
+                    }}
+                  >
+                    Fermer la fenêtre
+                  </button>
+                </div>
+              ) : !submitSuccess ? (
+                <>
+                  <span
+                    className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase mb-1 block"
+                    style={{ color: accentOf(selectedEvent).ink }}
+                  >
+                    Inscription
+                  </span>
+                  <h3 className="font-heading font-black text-xl uppercase leading-tight tracking-tight mb-4 pr-6">
+                    {selectedEvent.title}
+                  </h3>
+                  
+                  <div className="mb-6 bg-[#F5F5F5] p-4 rounded-xl border border-[#060D03]/5">
+                    <div className="text-xs font-mono text-[#060D03]/70 flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={14} weight="bold" style={{ color: accentOf(selectedEvent).ink }} />
+                        <span>{selectedEvent.dateStr} ({selectedEvent.time})</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin size={14} weight="bold" style={{ color: accentOf(selectedEvent).ink }} />
+                        <span>{selectedEvent.venue}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <label htmlFor="name" className="block font-heading font-bold text-xs uppercase tracking-wider text-[#060D03] mb-1.5">
+                        Nom complet *
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder="Ton nom complet"
+                        className={`w-full h-12 px-4 rounded-xl border-2 bg-transparent text-sm focus:outline-none transition-all ${
+                          formErrors.name 
+                            ? "border-[#E63946] focus:border-[#E63946]" 
+                            : "border-[#060D03]/10 focus:border-[#00B140] focus:ring-2 focus:ring-[#00B140]/10"
+                        }`}
+                      />
+                      {formErrors.name && (
+                        <p className="text-[#E63946] text-xs mt-1 font-medium">{formErrors.name}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label htmlFor="whatsapp" className="block font-heading font-bold text-xs uppercase tracking-wider text-[#060D03] mb-1.5">
+                        Numéro WhatsApp *
+                      </label>
+                      <input
+                        type="text"
+                        id="whatsapp"
+                        name="whatsapp"
+                        value={formData.whatsapp}
+                        onChange={handleInputChange}
+                        placeholder="Ton numéro WhatsApp (ex: 01 60 007 007)"
+                        className={`w-full h-12 px-4 rounded-xl border-2 bg-transparent text-sm focus:outline-none transition-all ${
+                          formErrors.whatsapp 
+                            ? "border-[#E63946] focus:border-[#E63946]" 
+                            : "border-[#060D03]/10 focus:border-[#00B140] focus:ring-2 focus:ring-[#00B140]/10"
+                        }`}
+                      />
+                      {formErrors.whatsapp && (
+                        <p className="text-[#E63946] text-xs mt-1 font-medium">{formErrors.whatsapp}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label htmlFor="email" className="block font-heading font-bold text-xs uppercase tracking-wider text-[#060D03] mb-1.5">
+                        Adresse e-mail (Optionnel)
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="Ton adresse e-mail"
+                        className="w-full h-12 px-4 rounded-xl border-2 border-[#060D03]/10 bg-transparent text-sm focus:outline-none focus:border-[#00B140] focus:ring-2 focus:ring-[#00B140]/10 transition-all"
+                      />
+                    </div>
+
+                    {formErrors.submit && (
+                      <div className="border border-[#E63946]/30 bg-[#E63946]/5 rounded-xl p-3">
+                        <p className="text-[#E63946] text-xs font-medium mb-1">{formErrors.submit}</p>
+                        <a
+                          href="https://wa.me/2290160007007?text=Bonjour%2C%20je%20souhaite%20m%27inscrire%20%C3%A0%20un%20%C3%A9v%C3%A9nement%20MEB."
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] font-heading font-bold text-[#060D03] underline hover:text-[#00B140] transition-colors"
+                        >
+                          Écris-nous directement sur WhatsApp →
+                        </a>
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full font-heading font-bold py-4 rounded-xl transition-opacity duration-300 hover:opacity-90 disabled:opacity-70 uppercase tracking-widest text-xs mt-4 flex items-center justify-center gap-2"
+                      style={{
+                        backgroundColor: accentOf(selectedEvent).accent,
+                        color: accentOf(selectedEvent).onAccent,
+                      }}
+                    >
+                      {isSubmitting ? (
+                        <div
+                          className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+                          style={{ borderColor: accentOf(selectedEvent).onAccent, borderTopColor: "transparent" }}
+                        ></div>
+                      ) : (
+                        "Confirmer l'inscription"
+                      )}
+                    </button>
+                    
+                    <p className="text-center font-mono text-[9px] text-[#060D03]/40 uppercase tracking-wider mt-3">
+                      Gratuit. Confirmation immédiate.
+                    </p>
+                  </form>
+                </>
+              ) : (
+                <div className="py-6 flex flex-col items-center text-center">
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
+                    style={{
+                      backgroundColor: accentOf(selectedEvent).soft,
+                      color: accentOf(selectedEvent).ink,
+                    }}
+                  >
+                    <Check size={32} weight="bold" />
+                  </div>
+                  <h3 className="font-heading font-black text-2xl uppercase leading-tight tracking-tight mb-2">
+                    Inscription confirmée !
+                  </h3>
+                  <p className="font-body text-sm text-[#060D03]/70 leading-relaxed mb-6">
+                    Merci <span className="font-bold text-[#060D03]">{formData.name}</span>, ta place est réservée pour <span className="font-bold text-[#060D03]">{selectedEvent.title}</span>.
+                  </p>
+                  <div className="w-full bg-[#F5F5F5] p-4 rounded-xl border border-[#060D03]/5 mb-6 text-xs text-[#060D03]/60 font-body">
+                    Un récapitulatif a été enregistré et nous te recontactons sous 24h par WhatsApp au <span className="font-bold text-[#060D03]">{formData.whatsapp}</span> pour la confirmation finale.
+                  </div>
+                  <button
+                    onClick={closeModal}
+                    className="w-full bg-[#060D03] hover:bg-[#060D03]/90 text-white font-heading font-bold py-4 rounded-xl transition-all duration-300 uppercase tracking-widest text-xs"
+                  >
+                    Fermer la fenêtre
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+    </div>
+    </MotionConfig>
+  );
+}

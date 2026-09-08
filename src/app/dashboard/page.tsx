@@ -125,6 +125,9 @@ export default function DashboardPage() {
   // Local States loaded from storage
   const [hiddenPages, setHiddenPages] = useState<string[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
+  // Vrai tant que la liste n'a pas pu être lue : on refuse alors d'enregistrer,
+  // car sauvegarder une liste vide supprimerait tous les événements en base.
+  const [eventsLoadFailed, setEventsLoadFailed] = useState(false);
   const [projects, setProjects] = useState<ProjectItem[]>([]);
 
   // Project Add Form State
@@ -189,7 +192,15 @@ export default function DashboardPage() {
   useEffect(() => {
     if (authStatus !== "authed") return;
     getHiddenPages().then(setHiddenPages);
-    getEvents().then(setEvents);
+    getEvents()
+      .then((loaded) => {
+        setEvents(loaded);
+        setEventsLoadFailed(false);
+      })
+      .catch(() => {
+        setEventsLoadFailed(true);
+        triggerNotification("Impossible de charger les événements. Recharge la page.");
+      });
     getProjects().then(setProjects);
   }, [authStatus]);
 
@@ -205,6 +216,10 @@ export default function DashboardPage() {
   // ------------------------------------------------------------------
   const eventsSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const persistEvents = (updated: EventItem[], immediate = false) => {
+    if (eventsLoadFailed) {
+      triggerNotification("Enregistrement bloqué : la liste des événements n'a pas été chargée. Recharge la page.");
+      return;
+    }
     setEvents(updated);
     if (eventsSaveTimer.current) clearTimeout(eventsSaveTimer.current);
     const run = () =>

@@ -3,30 +3,11 @@
 // la réécriture des composants, cf. BACKEND.md §4 et §10.
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { resolvePhotoUrl, resolvePhotoUrls } from "@/lib/photos";
+import { type EventItem, eventFromRow, eventToRow } from "@/lib/events";
 
-export interface EventItem {
-  num: string; // "01" (JPO), "02" (Petits-Dej), "03" (Mastermind), "04" (Afterwork) or dynamic ID
-  title: string;
-  dateStr: string; // e.g. "Jeudi 2 Juillet 2026"
-  recurringStr: string; // e.g. "Chaque 1er Jeudi du Mois"
-  time: string;
-  venue: string;
-  desc: string;
-  tag: string;
-  seats: number;
-  dateRaw: string; // ISO string representing the next instance date
-  isHidden?: boolean;
-  templateStyle?: "01" | "02" | "03" | "04" | "05"; // Card style preset (Red, White, Green, Yellow, Photo)
-  cardPhoto?: string; // Photo de la carte (template 05), choisie dès la création de l'événement
-
-  // --- Bloc "Après-événement" (récapitulatif) ---
-  recapPublished?: boolean;
-  recapText?: string;
-  recapPhotos?: string[];
-  recapAttendees?: number;
-  recapDateStr?: string;
-}
+// Le modèle « événement » vit dans @/lib/events (partagé serveur / navigateur,
+// sans supabase-js) ; on le ré-exporte pour les imports existants.
+export type { EventItem } from "@/lib/events";
 
 export interface ProjectItem {
   id: string;
@@ -162,70 +143,6 @@ const notifyUpdate = () => {
 // Mapping lignes Postgres (snake_case) <-> objets frontend (camelCase)
 // ------------------------------------------------------------------
 
-type EventRow = {
-  num: string;
-  title: string;
-  tag: string;
-  date_str: string;
-  recurring_str: string;
-  time: string;
-  venue: string;
-  desc: string;
-  seats: number;
-  date_raw: string;
-  is_hidden: boolean;
-  template_style: string;
-  card_photo: string | null;
-  recap_published: boolean;
-  recap_text: string | null;
-  recap_photos: string[] | null;
-  recap_attendees: number | null;
-  recap_date_str: string | null;
-};
-
-const eventFromRow = (row: EventRow): EventItem => ({
-  num: row.num,
-  title: row.title,
-  tag: row.tag,
-  dateStr: row.date_str,
-  recurringStr: row.recurring_str,
-  time: row.time,
-  venue: row.venue,
-  desc: row.desc,
-  seats: row.seats,
-  dateRaw: row.date_raw,
-  isHidden: row.is_hidden,
-  templateStyle: (row.template_style as EventItem["templateStyle"]) ?? "01",
-  // Les URLs Storage sont recollées sur l'hôte Supabase courant (cf. src/lib/photos.ts).
-  cardPhoto: row.card_photo ? resolvePhotoUrl(row.card_photo) : undefined,
-  recapPublished: row.recap_published,
-  recapText: row.recap_text ?? undefined,
-  recapPhotos: resolvePhotoUrls(row.recap_photos),
-  recapAttendees: row.recap_attendees ?? undefined,
-  recapDateStr: row.recap_date_str ?? undefined,
-});
-
-const eventToRow = (event: EventItem) => ({
-  num: event.num,
-  title: event.title,
-  tag: event.tag,
-  date_str: event.dateStr,
-  recurring_str: event.recurringStr,
-  time: event.time,
-  venue: event.venue,
-  desc: event.desc,
-  seats: event.seats,
-  date_raw: event.dateRaw,
-  is_hidden: event.isHidden ?? false,
-  template_style: event.templateStyle ?? (["01", "02", "03", "04"].includes(event.num) ? event.num : "01"),
-  card_photo: event.cardPhoto ?? null,
-  recap_published: event.recapPublished ?? false,
-  recap_text: event.recapText ?? null,
-  recap_photos: event.recapPhotos ?? [],
-  recap_attendees: event.recapAttendees ?? null,
-  recap_date_str: event.recapDateStr ?? null,
-});
-
 type ProjectRow = {
   id: string;
   title: string;
@@ -269,11 +186,14 @@ export const getEvents = async (): Promise<EventItem[]> => {
     .from("events")
     .select("*")
     .order("num", { ascending: true });
+  // Base injoignable : on remonte l'erreur au lieu d'afficher les événements
+  // « par défaut » — un visiteur (ou le dashboard, qui pourrait ensuite les
+  // enregistrer) ne doit jamais prendre un contenu de secours pour la réalité.
   if (error || !data) {
     console.error("[storage] getEvents:", error?.message);
-    return DEFAULT_EVENTS;
+    throw new Error(error?.message ?? "Lecture des événements impossible.");
   }
-  return (data as EventRow[]).map(eventFromRow);
+  return (data as Parameters<typeof eventFromRow>[0][]).map(eventFromRow);
 };
 
 export const saveEvents = async (events: EventItem[]): Promise<void> => {

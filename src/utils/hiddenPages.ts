@@ -20,13 +20,18 @@ let cache: { at: number; value: string[] } | null = null;
 let inflight: Promise<string[]> | null = null;
 const TTL = 60_000;
 
-export async function getHiddenPagesLite(): Promise<string[]> {
+// `fresh` ignore le cache : rendu serveur d'une page à la demande, ou
+// notification temps réel (le masquage vient de changer, la valeur en cache
+// est justement celle qu'il faut oublier).
+export async function getHiddenPagesLite(opts: { fresh?: boolean } = {}): Promise<string[]> {
   if (!URL_BASE || !ANON_KEY) return [];
 
-  if (cache && Date.now() - cache.at < TTL) return cache.value;
-  if (inflight) return inflight;
+  if (!opts.fresh) {
+    if (cache && Date.now() - cache.at < TTL) return cache.value;
+    if (inflight) return inflight;
+  }
 
-  inflight = fetchHiddenPages().then((value) => {
+  inflight = fetchHiddenPages(opts.fresh ?? false).then((value) => {
     // On memorise aussi les echecs (liste vide) : sinon chaque composant
     // relance sa propre requete tant que la base ne repond pas.
     cache = { at: Date.now(), value };
@@ -36,7 +41,7 @@ export async function getHiddenPagesLite(): Promise<string[]> {
   return inflight;
 }
 
-async function fetchHiddenPages(): Promise<string[]> {
+async function fetchHiddenPages(fresh: boolean): Promise<string[]> {
   if (!URL_BASE || !ANON_KEY) return [];
   try {
     const res = await fetch(
@@ -47,8 +52,10 @@ async function fetchHiddenPages(): Promise<string[]> {
           Authorization: `Bearer ${ANON_KEY}`,
           Accept: "application/json",
         },
-        // Le masquage change rarement : on tolère 60 s de cache.
-        next: { revalidate: 60 },
+        // Le masquage change rarement : on tolère 60 s de cache, sauf quand
+        // l'appelant exige la valeur du moment.
+        ...(fresh ? { cache: "no-store" as const } : { next: { revalidate: 60 } }),
+        signal: AbortSignal.timeout(6_000),
       }
     );
     if (!res.ok) return [];
